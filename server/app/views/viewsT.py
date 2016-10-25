@@ -1,0 +1,3 @@
+
+def viewsTecnico(arg):
+    pass

@@ -1,0 +1,2 @@
+def TecnicoSerializers(arg):
+    pass

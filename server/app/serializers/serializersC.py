@@ -1,0 +1,2 @@
+def CoordinadorSerializers(arg):
+    pass
