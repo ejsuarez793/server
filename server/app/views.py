@@ -13,3 +13,7 @@ def viewsTecnico(arg):
 
 def viewsVendedor(arg):
     pass
+
+
+def viewsTodos(arg):
+    pass

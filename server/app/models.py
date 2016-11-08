@@ -1,8 +1,20 @@
 from __future__ import unicode_literals
 
 from django.db import models
+from django.contrib.auth.models import User
 
 # Create your models here.
+
+from django.conf import settings
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from rest_framework.authtoken.models import Token
+
+
+@receiver(post_save, sender=settings.AUTH_USER_MODEL)
+def create_auth_token(sender, instance=None, created=False, **kwargs):
+    if created:
+        Token.objects.create(user=instance)
 
 
 #  aqui hay mod dir dire
@@ -30,9 +42,10 @@ class Trabajador(models.Model):
     apellido1 = models.CharField(max_length=15)
     apellido2 = models.CharField(max_length=15, blank=True)
     tlf = models.CharField(max_length=15)
-    correo = models.CharField(max_length=20)
-    dire = models.CharField(max_length=50)
+    correo = models.EmailField()
+    dire = models.CharField(max_length=200, blank=True)
     cargo = models.CharField(max_length=1, choices=opt)
+    usuario = models.OneToOneField(User)
 
 
 #  aqui hay mod, estatus varchar(1) y nombre_cc dos C
@@ -347,3 +360,4 @@ class Equipo(models.Model):
     cantidad = models.IntegerField()
     serial = models.CharField(max_length=50, unique=True, blank=True)
     f_act = models.DateField(auto_now=True)
+

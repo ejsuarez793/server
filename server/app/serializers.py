@@ -13,3 +13,6 @@ def TecnicoSerializers(arg):
 def VendedorSerializers(arg):
     pass
 
+
+def TodosSerializers(arg):
+    pass

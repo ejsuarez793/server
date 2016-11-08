@@ -2,3 +2,4 @@ from serializersA import AlmacenistaSerializers
 from serializersC import CoordinadorSerializers
 from serializersT import TecnicoSerializers
 from serializersV import VendedorSerializers
+from serializersAll import TodosSerializers
