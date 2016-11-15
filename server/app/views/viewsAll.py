@@ -1,5 +1,5 @@
 from django.contrib.auth.models import User
-from app.models import Trabajador
+from app.models import Trabajador,Cliente
 from app.serializers.serializersAll import UserSerializer, TrabajadorSerializer
 from rest_framework.permissions import (
     AllowAny,
@@ -77,6 +77,18 @@ class ValidarTrabajador(APIView):
             return Response("true") # return false as user does not exist
         else:
             return Response("Cedula ya registrada.")
+
+
+class ValidarCliente(APIView):
+    def get(self, request, format=None):
+        rif = self.request.query_params.get('rif') 
+        try:
+            Cliente.objects.get(rif=rif) # retrieve the user using username
+        except Cliente.DoesNotExist:
+            return Response("true") # return false as user does not exist
+        else:
+            return Response("Rif ya registrado")
+
 
 class CurrentUser(APIView):
 

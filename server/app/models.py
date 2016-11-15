@@ -19,13 +19,19 @@ def create_auth_token(sender, instance=None, created=False, **kwargs):
 
 #  aqui hay mod dir dire
 class Cliente(models.Model):
+    opt = (
+        ('o', 'Ordinario'),
+        ('e', 'Especial'),
+        ('f', 'Formales'),
+    )
     rif = models.CharField(primary_key=True, max_length=15)
     nombre = models.CharField(max_length=75, db_index=True)
     tlf1 = models.CharField(max_length=15)
     tlf2 = models.CharField(max_length=15, blank=True)
+    fax = models.CharField(max_length=15, blank=True)
     dire = models.CharField(max_length=200)
     act_eco = models.CharField(max_length=100, blank=True)
-    cond_contrib = models.CharField(max_length=10, blank=True)
+    cond_contrib = models.CharField(max_length=10, blank=True, choices=opt)
 
 
 #  aqui cambio direccio por dire, igua que cargo por 1
@@ -61,11 +67,12 @@ class Solicitud(models.Model):
     referido_p = models.CharField(max_length=50, blank=True)
     desc = models.CharField(max_length=300)
     ubicacion = models.CharField(max_length=150)
-    estatus = models.CharField(max_length=1, blank=True, choices=est)
+    estatus = models.CharField(max_length=1, choices=est,default='n')
     nombre_cc = models.CharField(max_length=75)
     tlf_cc = models.CharField(max_length=15)
-    correo = models.CharField(max_length=50)
+    correo_cc = models.EmailField()
     cargo_cc = models.CharField(max_length=50)
+    f_sol = models.DateField(auto_now_add=True)
 
 
 class Proyecto(models.Model):
