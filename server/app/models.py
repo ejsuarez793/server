@@ -67,12 +67,13 @@ class Solicitud(models.Model):
     referido_p = models.CharField(max_length=50, blank=True)
     desc = models.CharField(max_length=300)
     ubicacion = models.CharField(max_length=150)
-    estatus = models.CharField(max_length=1, choices=est,default='n')
+    estatus = models.CharField(max_length=1, choices=est, default='n')
     nombre_cc = models.CharField(max_length=75)
     tlf_cc = models.CharField(max_length=15)
     correo_cc = models.EmailField()
     cargo_cc = models.CharField(max_length=50)
     f_sol = models.DateField(auto_now_add=True)
+    f_vis = models.DateField(blank=True, null=True)  # quitar null
 
 
 class Proyecto(models.Model):
@@ -122,6 +123,7 @@ class Reporte_inicial(models.Model):
     complejidad = models.CharField(max_length=2, choices=opt, blank=True)
     completado = models.BooleanField(default=False)
     nombre_t = models.CharField(max_length=60, blank=True)
+    f_vis = models.DateField(auto_now_add=True, null=True)  # quitar null
 
 
 class Causa_rechazo(models.Model):
