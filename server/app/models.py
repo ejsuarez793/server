@@ -84,18 +84,18 @@ class Proyecto(models.Model):
         ('c', 'culminado'),
         ('r', 'Rechazado'),
     )
-    codigo = models.CharField(primary_key=True, max_length=15)
+    codigo = models.CharField(primary_key=True, max_length=20)
     codigo_s = models.ForeignKey(Solicitud, on_delete=models.PROTECT)
     codigo_ri = models.ForeignKey('Reporte_inicial', on_delete=models.PROTECT,
-                                  blank=True)
+                                  blank=True, null=True)
     ci_coord = models.ForeignKey(Trabajador, on_delete=models.PROTECT)
-    nombre = models.CharField(max_length=20)
-    desc = models.CharField(max_length=200)
+    nombre = models.CharField(max_length=100)
+    desc = models.CharField(max_length=500)
     ubicacion = models.CharField(max_length=150)
-    estatus = models.CharField(max_length=1, choices=est)
-    f_ini = models.DateField(blank=True)
-    f_fin = models.DateField(blank=True)
-    f_est = models.DateField(blank=True)
+    estatus = models.CharField(max_length=1, choices=est, default='p')
+    f_ini = models.DateField(blank=True, null=True)
+    f_fin = models.DateField(blank=True, null=True)
+    f_est = models.DateField(blank=True, null=True)
 
 
 #  se cambio estatus por completado y persona,nombre_t a 60, y fac y
@@ -123,7 +123,6 @@ class Reporte_inicial(models.Model):
     complejidad = models.CharField(max_length=2, choices=opt, blank=True)
     completado = models.BooleanField(default=False)
     nombre_t = models.CharField(max_length=60, blank=True)
-    f_vis = models.DateField(auto_now_add=True, null=True)  # quitar null
 
 
 class Causa_rechazo(models.Model):
