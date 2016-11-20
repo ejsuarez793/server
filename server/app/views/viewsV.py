@@ -1,4 +1,4 @@
-from app.models import Cliente,Solicitud
+from app.models import Cliente, Solicitud
 from app.serializers.serializersV import ClienteSerializer, SolicitudSerializer
 from rest_framework import generics
 

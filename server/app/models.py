@@ -247,7 +247,7 @@ class Presupuesto(models.Model):
 class Servicio_presupuesto(models.Model):
     codigo_pre = models.ForeignKey(Presupuesto, on_delete=models.PROTECT)
     codigo_ser = models.ForeignKey('Servicio', on_delete=models.PROTECT)
-    precio_venta = models.DecimalField(max_digits=30, decimal_places=4)
+    precio_venta = models.DecimalField(max_digits=30, decimal_places=2)
 
     class Meta:
         unique_together = ('codigo_pre', 'codigo_ser',)
@@ -265,8 +265,8 @@ class Material_presupuesto(models.Model):
 
 class Servicio(models.Model):
     codigo = models.CharField(primary_key=True, max_length=6)
-    desc = models.CharField(max_length=100)
-    precio_act = models.DecimalField(max_digits=30, decimal_places=4)
+    desc = models.CharField(max_length=200)
+    precio_act = models.DecimalField(max_digits=30, decimal_places=2)
     f_act = models.DateField(auto_now=True)
 
 

@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
-from app.models import Trabajador,Solicitud
+from app.models import Trabajador, Solicitud, Servicio
 from app.serializers.serializersAll import TrabajadorSerializer
-from app.serializers.serializersC import ProyectoSerializer, SolicitudSerializer, ProyectoTecnicoSerializer
+from app.serializers.serializersC import ProyectoSerializer, SolicitudSerializer, ProyectoTecnicoSerializer, ServicioSerializer
 from django.db import transaction
 from rest_framework.permissions import (
     AllowAny,
@@ -12,6 +12,8 @@ from rest_framework.permissions import (
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework import generics
+
 
 
 def viewsCoordinador(arg):
@@ -36,7 +38,7 @@ class ProcesarSolicitud(APIView):
     def put(self, request, format=None):
         with transaction.atomic():
             sol = Solicitud.objects.get(codigo=request.data['solicitud']['codigo'])
-            solicitud = SolicitudSerializer(sol,data=request.data['solicitud'])
+            solicitud = SolicitudSerializer(sol, data=request.data['solicitud'])
             if (solicitud.is_valid()):
                 print("solicitud valida")
                 solicitud.save()
@@ -47,7 +49,7 @@ class ProcesarSolicitud(APIView):
             if (proyecto.is_valid()):
                 print("proyecto valido")
                 proyecto.save()
-                proyecto_tecnico = ProyectoTecnicoSerializer(data=request.data['proyecto_tecnico'])
+                proyecto_tecnico = ProyectoTecnicoSerializer(data=request. data['proyecto_tecnico'])
                 if (proyecto_tecnico.is_valid()):
                     print("proyecto tecnico valido")
                     proyecto_tecnico.save()
@@ -57,4 +59,17 @@ class ProcesarSolicitud(APIView):
                 print(proyecto.errors)
 
 
-            return Response("epale todo bien", status=status.HTTP_200_OK)
+            return Response("Solicitud Procesada", status=status.HTTP_200_OK)
+
+
+
+class ServicioList(generics.ListCreateAPIView):
+    permission_classes = [IsAuthenticated]
+    queryset = Servicio.objects.all()
+    serializer_class = ServicioSerializer
+
+
+class ServicioDetail(generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = [IsAuthenticated]
+    queryset = Servicio.objects.all()
+    serializer_class = ServicioSerializer
