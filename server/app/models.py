@@ -78,11 +78,11 @@ class Solicitud(models.Model):
 
 class Proyecto(models.Model):
     est = (
-        ('p', 'Preventa'),
-        ('a', 'Aprobado'),
-        ('e', 'Ejecucion'),
-        ('c', 'culminado'),
-        ('r', 'Rechazado'),
+        ('Preventa', 'Preventa'),
+        ('Aprobado', 'Aprobado'),
+        ('Ejecucion', 'Ejecucion'),
+        ('Culminado', 'Culminado'),
+        ('Rechazado', 'Rechazado'),
     )
     codigo = models.CharField(primary_key=True, max_length=20)
     codigo_s = models.ForeignKey(Solicitud, on_delete=models.PROTECT)
@@ -92,7 +92,7 @@ class Proyecto(models.Model):
     nombre = models.CharField(max_length=100)
     desc = models.CharField(max_length=500)
     ubicacion = models.CharField(max_length=150)
-    estatus = models.CharField(max_length=1, choices=est, default='p')
+    estatus = models.CharField(max_length=10, choices=est, default='Preventa')
     f_ini = models.DateField(blank=True, null=True)
     f_fin = models.DateField(blank=True, null=True)
     f_est = models.DateField(blank=True, null=True)

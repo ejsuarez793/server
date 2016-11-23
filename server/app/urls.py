@@ -1,8 +1,9 @@
 # urls.py
 from django.conf.urls import url
 from app.views.viewsV import ClienteList, ClienteDetail,SolicitudList
-from app.views.viewsC import Tecnicos, ProcesarSolicitud, ServicioList ,ServicioDetail
-from app.views.viewsAll import ListUsers,ValidarTrabajador,ValidarUsuario,ValidarCliente,CurrentUser
+from app.views.viewsC import Tecnicos, ProcesarSolicitud, ServicioList ,ServicioDetail,ProyectoCoordinador
+from app.views.viewsT import ReporteInicial
+from app.views.viewsAll import ListUsers,ValidarTrabajador,ValidarUsuario,ValidarCliente,CurrentUser,ValidarServicio
 from rest_framework.authtoken import views
 
 
@@ -21,4 +22,9 @@ urlpatterns = [
     url(r'^proyectos/solicitud/$', ProcesarSolicitud.as_view()),
     url(r'^servicio/$', ServicioList.as_view()),
     url(r'^servicio/(?P<pk>[\w\-]+)/$', ServicioDetail.as_view()),
+    url(r'^validar/servicio/$', ValidarServicio.as_view()),
+    url(r'^proyectoCoordinador/$', ProyectoCoordinador.as_view()),
+
+
+    url(r'^proyecto/(?P<pk>[\w\-]+)/reporteInicial/$', ReporteInicial.as_view()),
 ]

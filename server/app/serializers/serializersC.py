@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from app.models import Solicitud, Proyecto, Proyecto_tecnico, Servicio
+from app.models import Solicitud, Proyecto, Proyecto_tecnico, Servicio, Cliente
 
 
 def CoordinadorSerializers(arg):
@@ -10,7 +10,13 @@ def CoordinadorSerializers(arg):
 class SolicitudSerializer(serializers.ModelSerializer):
     class Meta:
         model = Solicitud
-        fields = ('codigo', 'f_vis')
+        fields = ('codigo', 'f_vis','estatus')
+
+
+class SolicitudSerializerAll(serializers.ModelSerializer):
+    class Meta:
+        model = Solicitud
+        fields = '__all__'
 
 
 class ProyectoSerializer(serializers.ModelSerializer):
