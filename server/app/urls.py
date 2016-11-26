@@ -1,10 +1,14 @@
 # urls.py
 from django.conf.urls import url
+from rest_framework.authtoken import views
+
+
+from app.views.viewsA import MaterialList, EquipoList, EquipoDetail
 from app.views.viewsV import ClienteList, ClienteDetail,SolicitudList
 from app.views.viewsC import Tecnicos, ProcesarSolicitud, ServicioList ,ServicioDetail,ProyectoCoordinador
 from app.views.viewsT import ReporteInicial
 from app.views.viewsAll import ListUsers,ValidarTrabajador,ValidarUsuario,ValidarCliente,CurrentUser,ValidarServicio
-from rest_framework.authtoken import views
+
 
 
 urlpatterns = [
@@ -27,4 +31,9 @@ urlpatterns = [
 
 
     url(r'^proyecto/(?P<pk>[\w\-]+)/reporteInicial/$', ReporteInicial.as_view()),
+
+
+    url(r'^material/$', MaterialList.as_view()),
+    url(r'^equipo/$', EquipoList.as_view()),
+    url(r'^equipo/(?P<pk>[\w\-]+)/$', EquipoDetail.as_view()),
 ]

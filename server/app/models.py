@@ -273,16 +273,17 @@ class Servicio(models.Model):
 #  serial max len 50 y varchar en las medidas
 class Material(models.Model):
     codigo = models.CharField(primary_key=True, max_length=10)
-    desc = models.CharField(max_length=20)
+    nombre = models.CharField(max_length=100)
+    desc = models.CharField(max_length=300, blank=True)
     presen = models.CharField(max_length=50, blank=True)
     f_act = models.DateField(auto_now=True)
-    precio_act = models.DecimalField(max_digits=30, decimal_places=4)
+    precio_act = models.DecimalField(max_digits=30, decimal_places=2)
     cantidad = models.IntegerField()
-    serial = models.CharField(max_length=50, unique=True, blank=True)
+    serial = models.CharField(max_length=50, unique=True, blank=True, null=True)
     largo = models.CharField(max_length=20, blank=True)
     ancho = models.CharField(max_length=20, blank=True)
     alto = models.CharField(max_length=20, blank=True)
-    marca = models.CharField(max_length=30)
+    marca = models.CharField(max_length=50)
     modelo = models.CharField(max_length=50, blank=True)
     color = models.CharField(max_length=20, blank=True)
 
@@ -366,6 +367,5 @@ class Equipo(models.Model):
     desc = models.CharField(max_length=50, blank=True)
     costo_uso = models.DecimalField(max_digits=30, decimal_places=2)
     cantidad = models.IntegerField()
-    serial = models.CharField(max_length=50, unique=True, blank=True)
+    serial = models.CharField(max_length=50, unique=True, blank=True, null=True)
     f_act = models.DateField(auto_now=True)
-

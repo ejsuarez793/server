@@ -4,7 +4,7 @@ from rest_framework.permissions import (
     IsAdminUser,
     IsAuthenticatedOrReadOnly,
 )
-from app.permissions import esCoordinadorOesTecnico
+from app.permissions import esTecnicoOsoloLectura
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -18,7 +18,7 @@ def viewsTecnico(arg):
 
 
 class ReporteInicial(APIView):
-    permission_classes = [IsAuthenticated,esCoordinadorOesTecnico] #,esTecnico]
+    permission_classes = [IsAuthenticated,esTecnicoOsoloLectura] #,esTecnico]
 
     def post(self,request, pk, format=None):
         proyecto = Proyecto.objects.get(codigo=pk)

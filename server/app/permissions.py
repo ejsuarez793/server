@@ -4,14 +4,16 @@ from app.models import Trabajador
 from rest_framework.response import Response
 
 
+SAFE_METHODS = ['GET', 'HEAD', 'OPTIONS']
+
 class esAlmacenista(permissions.BasePermission):
-    message = 'El usuario no es un Almacenista.'
+    message = 'El usuario no es un Almacenista, o esta ejecutando un metodo no permitido.'
 
     def has_permission(self, request, view):
         try:
             usuario = User.objects.get(username=request.user)
             trabajador = Trabajador.objects.get(usuario_id=usuario.id)
-            if (trabajador.cargo == "a"):
+            if (trabajador.cargo == "a" or request.method in SAFE_METHODS):
                 return True
             else:
                 return False
@@ -34,14 +36,14 @@ class esCoordinador(permissions.BasePermission):
             return False
 
 
-class esTecnico(permissions.BasePermission):
-    message = 'El usuario no es un Tecnico.'
+class esTecnicoOsoloLectura(permissions.BasePermission):
+    message = 'El usuario no es un Tecnico,o esta ejecutando un metodo no permitido.'
 
     def has_permission(self, request, view):
         try:
             usuario = User.objects.get(username=request.user)
             trabajador = Trabajador.objects.get(usuario_id=usuario.id)
-            if (trabajador.cargo == "t"):
+            if (trabajador.cargo == "t" or request.method in SAFE_METHODS):
                 return True
             else:
                 return False
@@ -64,7 +66,7 @@ class esVendedor(permissions.BasePermission):
             return False
 
 
-class esCoordinadorOesTecnico(permissions.BasePermission):
+"""class esCoordinadorOesTecnico(permissions.BasePermission):
     message = 'El usuario no es Coordinador o Tecnico.'
 
     def has_permission(self, request, view):
@@ -76,4 +78,4 @@ class esCoordinadorOesTecnico(permissions.BasePermission):
             else:
                 return False
         except:
-            return False
+            return False"""
