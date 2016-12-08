@@ -1,19 +1,33 @@
 from rest_framework import serializers
 
-from app.models import Material, Equipo
+from app.models import Material, Equipo, Proveedor, Material_proveedor
 
 
 def AlmacenistaSerializers(arg):
     pass
 
 
-class MaterialSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Material
-        fields = '__all__'
 
 
 class EquipoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Equipo
+        fields = '__all__'
+
+
+class ProveedorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Proveedor
+        fields = '__all__'
+
+
+class MaterialProveedorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Material_proveedor
+        fields = '__all__'
+
+
+class MaterialSerializer(serializers.ModelSerializer):  
+    class Meta:
+        model = Material
         fields = '__all__'

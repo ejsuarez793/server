@@ -3,7 +3,7 @@ from django.conf.urls import url
 from rest_framework.authtoken import views
 
 
-from app.views.viewsA import MaterialList, EquipoList, EquipoDetail
+from app.views.viewsA import MaterialList, MaterialDetail, EquipoList, EquipoDetail,ProveedorList, ProveedorDetail
 from app.views.viewsV import ClienteList, ClienteDetail,SolicitudList
 from app.views.viewsC import Tecnicos, ProcesarSolicitud, ServicioList ,ServicioDetail,ProyectoCoordinador
 from app.views.viewsT import ReporteInicial
@@ -22,18 +22,21 @@ urlpatterns = [
     url(r'^validar/cliente/$', ValidarCliente.as_view()),
     url(r'^solicitud/$', SolicitudList.as_view()),
 
-    url(r'^proyectos/tecnicos/$', Tecnicos.as_view()),
-    url(r'^proyectos/solicitud/$', ProcesarSolicitud.as_view()),
+    url(r'^tecnicos/$', Tecnicos.as_view()),
+    url(r'^solicitud/procesar/$', ProcesarSolicitud.as_view()),
     url(r'^servicio/$', ServicioList.as_view()),
     url(r'^servicio/(?P<pk>[\w\-]+)/$', ServicioDetail.as_view()),
     url(r'^validar/servicio/$', ValidarServicio.as_view()),
-    url(r'^proyectoCoordinador/$', ProyectoCoordinador.as_view()),
+    url(r'^proyecto/coordinador/(?P<pk>[\w\-]+)/$', ProyectoCoordinador.as_view()),
 
 
     url(r'^proyecto/(?P<pk>[\w\-]+)/reporteInicial/$', ReporteInicial.as_view()),
 
 
     url(r'^material/$', MaterialList.as_view()),
+    url(r'^material/(?P<pk>[\w\-]+)/$', MaterialDetail.as_view()),
     url(r'^equipo/$', EquipoList.as_view()),
     url(r'^equipo/(?P<pk>[\w\-]+)/$', EquipoDetail.as_view()),
+    url(r'^proveedor/$', ProveedorList.as_view()),
+    url(r'^proveedor/(?P<pk>[\w\-]+)/$', ProveedorDetail.as_view()),
 ]

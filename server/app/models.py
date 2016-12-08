@@ -288,9 +288,17 @@ class Material(models.Model):
     color = models.CharField(max_length=20, blank=True)
 
 
-class C_proveedores(models.Model):
+class Proveedor(models.Model):
+    rif = models.CharField(primary_key=True, max_length=15)
+    nombre = models.CharField(max_length=75)
+    tlf1 = models.CharField(max_length=15)
+    tlf2 = models.CharField(max_length=15, blank=True)
+    dire = models.CharField(max_length=200)
+
+
+class Material_proveedor(models.Model):
     codigo = models.AutoField(primary_key=True)
-    codigo_prove = models.CharField(max_length=20)
+    codigo_prove = models.ForeignKey(Proveedor, on_delete=models.PROTECT)
     codigo_mat = models.ForeignKey(Material, on_delete=models.PROTECT)
 
     class Meta:
@@ -363,8 +371,8 @@ class Equipo_movimiento(models.Model):
 
 class Equipo(models.Model):
     codigo = models.AutoField(primary_key=True)
-    nombre = models.CharField(max_length=30)
-    desc = models.CharField(max_length=50, blank=True)
+    nombre = models.CharField(max_length=50)
+    desc = models.CharField(max_length=200, blank=True)
     costo_uso = models.DecimalField(max_digits=30, decimal_places=2)
     cantidad = models.IntegerField()
     serial = models.CharField(max_length=50, unique=True, blank=True, null=True)

@@ -39,7 +39,6 @@ class ProcesarSolicitud(APIView):
     def put(self, request, format=None):
         with transaction.atomic():
             sol = Solicitud.objects.get(codigo=request.data['solicitud']['codigo'])
-            print(sol.estatus)
             if (sol.estatus != "n"):
                 return Response("Solicitud ya estaba procesada", status=status.HTTP_400_BAD_REQUEST)
             solicitud = SolicitudSerializer(sol, data=request.data['solicitud'])
@@ -77,9 +76,9 @@ class ServicioDetail(generics.RetrieveUpdateDestroyAPIView):
 class ProyectoCoordinador(APIView):
     permission_classes = [IsAuthenticated]
     
-    def get(self, request, format=None):
+    def get(self, request, pk, format=None):
         try:
-            proyectos = Proyecto.objects.filter(ci_coord=self.request.query_params.get('ci_coord'))
+            proyectos = Proyecto.objects.filter(ci_coord=pk)
             serializer = ProyectoSerializer(proyectos, many=True)
             for proyecto in serializer.data:
                 solicitud = Solicitud.objects.get(codigo=proyecto['codigo_s'])

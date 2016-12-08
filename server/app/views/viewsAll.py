@@ -59,7 +59,6 @@ class ListUsers(APIView):
 class ValidarUsuario(APIView):
     def get(self, request, format=None):
         username = self.request.query_params.get('username')
-        print(username)
         try:
             User.objects.get(username=username) # retrieve the user using username
         except User.DoesNotExist: # si es usuario no existe es un username valido
@@ -108,6 +107,9 @@ class CurrentUser(APIView):
 
     def get(self, request, format=None):
         serializer = UserSerializer(request.user)
-        user = Trabajador.objects.get(usuario=serializer.data['id'])
-        serialized = TrabajadorSerializer(user)
-        return Response(serialized.data)
+        try:
+            user = Trabajador.objects.get(usuario=serializer.data['id'])
+            serialized = TrabajadorSerializer(user)
+        except Trabajador.DoesNotExist:
+            return Response("No existe el trabajador", status=status.HTTP_404_NOT_FOUND)
+        return Response(serialized.data, status=status.HTTP_200_OK)
