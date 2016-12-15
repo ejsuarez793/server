@@ -28,7 +28,7 @@ class esCoordinador(permissions.BasePermission):
         try:
             usuario = User.objects.get(username=request.user)
             trabajador = Trabajador.objects.get(usuario_id=usuario.id)
-            if (trabajador.cargo == "c"):
+            if (trabajador.cargo == "c" or request.method in SAFE_METHODS):
                 return True
             else:
                 return False

@@ -1,8 +1,8 @@
 from django.contrib.auth.models import User
-from app.models import Trabajador, Solicitud, Servicio,Proyecto, Cliente,Reporte_inicial
+from app.models import Trabajador, Solicitud, Servicio,Proyecto, Cliente,Reporte_inicial,Presupuesto
 from app.serializers.serializersAll import TrabajadorSerializer
 from app.serializers.serializersV import ClienteSerializer
-from app.serializers.serializersC import ProyectoSerializer, SolicitudSerializer, SolicitudSerializerAll, ProyectoTecnicoSerializer, ServicioSerializer, ReporteInicialSerializer
+from app.serializers.serializersC import ProyectoSerializer, PresupuestoSerializer, SolicitudSerializer, SolicitudSerializerAll, ProyectoTecnicoSerializer, ServicioSerializer, ReporteInicialSerializer
 from django.db import transaction
 from rest_framework.permissions import (
     AllowAny,
@@ -14,11 +14,49 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import generics
+from app.permissions import esCoordinador
 
 
 
 def viewsCoordinador(arg):
     pass
+
+
+class ProyectoList(APIView):
+    permission_classes = [IsAuthenticated, esCoordinador]
+    
+    def get(self, request, format=None):
+        proyectos = Proyecto.objects.all()
+        s_proyectos = ProyectoSerializer(proyectos, many=True)
+        for proyecto in s_proyectos.data:
+            solicitud = Solicitud.objects.get(codigo = proyecto['codigo_s'])
+            s_solicitud = SolicitudSerializerAll(solicitud)
+            cliente = Cliente.objects.get(rif = s_solicitud.data['rif_c'])
+            s_cliente = ClienteSerializer(cliente)
+            proyecto['nombre_c'] = s_cliente.data['nombre']
+        return Response(s_proyectos.data, status=status.HTTP_200_OK)
+
+
+class ProyectoDetail(APIView):
+    permission_classes = [IsAuthenticated, esCoordinador]
+    
+    def get(self, request, pk, format=None):
+        proyecto = Proyecto.objects.get(codigo=pk)
+        s_proyecto = ProyectoSerializer(proyecto)
+
+        solicitud = Solicitud.objects.get(codigo = s_proyecto.data['codigo_s'])
+        s_solicitud = SolicitudSerializerAll(solicitud)
+
+        cliente = Cliente.objects.get(rif = s_solicitud.data['rif_c'])
+        s_cliente = ClienteSerializer(cliente)
+
+        presupuestos = Presupuesto.objects.filter(codigo_pro=s_proyecto.data['codigo'])
+        s_presupuestos = PresupuestoSerializer(presupuestos, many=True)
+
+        proyecto = s_proyecto.data
+        proyecto['cliente'] = s_cliente.data
+        proyecto['presupuestos'] = s_presupuestos.data
+        return Response(proyecto, status=status.HTTP_200_OK)
 
 
 class Tecnicos(APIView):
