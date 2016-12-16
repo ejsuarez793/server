@@ -2,7 +2,7 @@ from django.contrib.auth.models import User
 from app.models import Trabajador, Solicitud, Servicio,Proyecto, Cliente,Reporte_inicial,Presupuesto
 from app.serializers.serializersAll import TrabajadorSerializer
 from app.serializers.serializersV import ClienteSerializer
-from app.serializers.serializersC import ProyectoSerializer, PresupuestoSerializer, SolicitudSerializer, SolicitudSerializerAll, ProyectoTecnicoSerializer, ServicioSerializer, ReporteInicialSerializer
+from app.serializers.serializersC import ProyectoSerializer, PresupuestoSerializer, Servicio_presupuestoSerializer, Material_presupuestoSerializer, SolicitudSerializer, SolicitudSerializerAll, ProyectoTecnicoSerializer, ServicioSerializer, ReporteInicialSerializer
 from django.db import transaction
 from rest_framework.permissions import (
     AllowAny,
@@ -24,14 +24,14 @@ def viewsCoordinador(arg):
 
 class ProyectoList(APIView):
     permission_classes = [IsAuthenticated, esCoordinador]
-    
+
     def get(self, request, format=None):
         proyectos = Proyecto.objects.all()
         s_proyectos = ProyectoSerializer(proyectos, many=True)
         for proyecto in s_proyectos.data:
-            solicitud = Solicitud.objects.get(codigo = proyecto['codigo_s'])
+            solicitud = Solicitud.objects.get(codigo=proyecto['codigo_s'])
             s_solicitud = SolicitudSerializerAll(solicitud)
-            cliente = Cliente.objects.get(rif = s_solicitud.data['rif_c'])
+            cliente = Cliente.objects.get(rif=s_solicitud.data['rif_c'])
             s_cliente = ClienteSerializer(cliente)
             proyecto['nombre_c'] = s_cliente.data['nombre']
         return Response(s_proyectos.data, status=status.HTTP_200_OK)
@@ -39,15 +39,15 @@ class ProyectoList(APIView):
 
 class ProyectoDetail(APIView):
     permission_classes = [IsAuthenticated, esCoordinador]
-    
+
     def get(self, request, pk, format=None):
         proyecto = Proyecto.objects.get(codigo=pk)
         s_proyecto = ProyectoSerializer(proyecto)
 
-        solicitud = Solicitud.objects.get(codigo = s_proyecto.data['codigo_s'])
+        solicitud = Solicitud.objects.get(codigo=s_proyecto.data['codigo_s'])
         s_solicitud = SolicitudSerializerAll(solicitud)
 
-        cliente = Cliente.objects.get(rif = s_solicitud.data['rif_c'])
+        cliente = Cliente.objects.get(rif=s_solicitud.data['rif_c'])
         s_cliente = ClienteSerializer(cliente)
 
         presupuestos = Presupuesto.objects.filter(codigo_pro=s_proyecto.data['codigo'])
@@ -57,6 +57,33 @@ class ProyectoDetail(APIView):
         proyecto['cliente'] = s_cliente.data
         proyecto['presupuestos'] = s_presupuestos.data
         return Response(proyecto, status=status.HTTP_200_OK)
+
+
+class PresupuestoList(APIView):
+    def post(self, request, pk, format=None):
+        try:
+            with transaction.atomic():
+                s_presupuesto = PresupuestoSerializer(data=request.data)
+                if (s_presupuesto.is_valid(raise_exception=True)):
+                    s_presupuesto.save()
+                    print(s_presupuesto.validated_data)
+
+                    for servicio in request.data['servicios']:
+                        servicio['codigo_ser'] = servicio['codigo']
+                        servicio['codigo_pre'] = s_presupuesto.validated_data['codigo']
+                        s_servicio = Servicio_presupuestoSerializer(data=servicio)
+                        if (s_servicio.is_valid(raise_exception=True)):
+                            s_servicio.save()
+
+                    for material in request.data['materiales']:
+                        material['codigo_mat'] = material['codigo']
+                        material['codigo_pre'] = s_presupuesto.validated_data['codigo']
+                        s_material = Material_presupuestoSerializer(data=material)
+                        if (s_material.is_valid(raise_exception=True)):
+                            s_material.save()
+                return Response(request.data, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 
 
 class Tecnicos(APIView):

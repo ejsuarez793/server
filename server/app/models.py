@@ -236,18 +236,24 @@ class Presupuesto(models.Model):
     codigo = models.CharField(primary_key=True, max_length=20)
     codigo_pro = models.ForeignKey(Proyecto, on_delete=models.PROTECT)
     ci_vendedor = models.ForeignKey(Trabajador, on_delete=models.PROTECT,
-                                    blank=True)
+                                    blank=True,  null=True)
     fecha = models.DateField()
     validez_o = models.IntegerField()
     descuento = models.IntegerField()
     observ = models.CharField(max_length=300, blank=True)
-    desc = models.CharField(max_length=100)
+    desc = models.CharField(max_length=200)
+    cond_ent = models.CharField(max_length=500, blank=True)
+    cond_g = models.CharField(max_length=500, blank=True)
+    cond_p = models.CharField(max_length=500, blank=True)
+    atencion_n = models.CharField(max_length=75)
+    atencion_e = models.EmailField()
 
 
 class Servicio_presupuesto(models.Model):
     codigo_pre = models.ForeignKey(Presupuesto, on_delete=models.PROTECT)
     codigo_ser = models.ForeignKey('Servicio', on_delete=models.PROTECT)
     precio_venta = models.DecimalField(max_digits=30, decimal_places=2)
+    cantidad = models.IntegerField()
 
     class Meta:
         unique_together = ('codigo_pre', 'codigo_ser',)
