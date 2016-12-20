@@ -1,5 +1,5 @@
 from django.contrib.auth.models import User
-from app.models import Trabajador, Solicitud, Servicio,Proyecto, Cliente,Reporte_inicial,Presupuesto
+from app.models import Trabajador, Solicitud, Servicio,Proyecto, Cliente,Reporte_inicial,Presupuesto, Servicio_presupuesto, Material_presupuesto
 from app.serializers.serializersAll import TrabajadorSerializer
 from app.serializers.serializersV import ClienteSerializer
 from app.serializers.serializersC import ProyectoSerializer, PresupuestoSerializer, Servicio_presupuestoSerializer, Material_presupuestoSerializer, SolicitudSerializer, SolicitudSerializerAll, ProyectoTecnicoSerializer, ServicioSerializer, ReporteInicialSerializer
@@ -52,7 +52,14 @@ class ProyectoDetail(APIView):
 
         presupuestos = Presupuesto.objects.filter(codigo_pro=s_proyecto.data['codigo'])
         s_presupuestos = PresupuestoSerializer(presupuestos, many=True)
+        for presupuesto in s_presupuestos.data:
+            servicios = Servicio_presupuesto.objects.filter(codigo_pre=presupuesto['codigo'])
+            s_servicios = Servicio_presupuestoSerializer(servicios, many=True)
+            presupuesto['servicios'] = s_servicios.data
 
+            materiales = Material_presupuesto.objects.filter(codigo_pre=presupuesto['codigo'])
+            s_materiales = Material_presupuestoSerializer(materiales, many=True)
+            presupuesto['materiales'] = s_materiales.data
         proyecto = s_proyecto.data
         proyecto['cliente'] = s_cliente.data
         proyecto['presupuestos'] = s_presupuestos.data
@@ -60,6 +67,8 @@ class ProyectoDetail(APIView):
 
 
 class PresupuestoList(APIView):
+    permission_classes = [IsAuthenticated, esCoordinador]
+
     def post(self, request, pk, format=None):
         try:
             with transaction.atomic():
@@ -82,6 +91,37 @@ class PresupuestoList(APIView):
                         if (s_material.is_valid(raise_exception=True)):
                             s_material.save()
                 return Response(request.data, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
+
+
+class PresupuestoDetail(APIView):
+    permission_classes = [IsAuthenticated, esCoordinador]
+
+    def patch(self, request, pro_pk, pre_pk, format=None):
+
+        try:
+            with transaction.atomic():
+                presupuesto = Presupuesto.objects.get(codigo=pre_pk)
+                if(presupuesto.estatus != "Aprobado"):
+                    s_presupuesto = PresupuestoSerializer(presupuesto, data=request.data)
+                    if(s_presupuesto.is_valid(raise_exception=True)):
+                        s_presupuesto.save()
+                        Servicio_presupuesto.objects.filter(codigo_pre=pre_pk).delete()
+                        for servicio in request.data['servicios']:
+                            servicio['codigo_ser'] = servicio['codigo']
+                            servicio['codigo_pre'] = s_presupuesto.validated_data['codigo']
+                            s_servicio = Servicio_presupuestoSerializer(data=servicio)
+                            if (s_servicio.is_valid(raise_exception=True)):
+                                s_servicio.save()
+                        Material_presupuesto.objects.filter(codigo_pre=pre_pk).delete()
+                        for material in request.data['materiales']:
+                            material['codigo_mat'] = material['codigo']
+                            material['codigo_pre'] = s_presupuesto.validated_data['codigo']
+                            s_material = Material_presupuestoSerializer(data=material)
+                            if (s_material.is_valid(raise_exception=True)):
+                                s_material.save()
+                return Response("Ok", status=status.HTTP_200_OK)
         except Exception as e:
             return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 

@@ -233,6 +233,11 @@ class Etapa_servicio(models.Model):
 
 #  aqui se cambio ci vendedor por null blank true
 class Presupuesto(models.Model):
+    est = (
+        ('Preventa', 'Preventa'),
+        ('Aprobado', 'Aprobado'),
+        ('Rechazado', 'Rechazado'),
+    )
     codigo = models.CharField(primary_key=True, max_length=20)
     codigo_pro = models.ForeignKey(Proyecto, on_delete=models.PROTECT)
     ci_vendedor = models.ForeignKey(Trabajador, on_delete=models.PROTECT,
@@ -247,6 +252,7 @@ class Presupuesto(models.Model):
     cond_p = models.CharField(max_length=500, blank=True)
     atencion_n = models.CharField(max_length=75)
     atencion_e = models.EmailField()
+    estatus = models.CharField(max_length=10, choices=est, default='Preventa')
 
 
 class Servicio_presupuesto(models.Model):

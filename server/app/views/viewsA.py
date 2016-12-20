@@ -73,14 +73,14 @@ class MaterialDetail(APIView):
                 serializer.save()
                 Material_proveedor.objects.filter(codigo_mat=serializer.validated_data['codigo']).delete()
                 for proveedor in request.data['proveedores']:
-                            mp = {}
-                            mp['codigo_prove'] = proveedor['rif']
-                            mp['codigo_mat'] = serializer.validated_data['codigo']
-                            mps = MaterialProveedorSerializer(data=mp)
-                            if(mps.is_valid(raise_exception=True)):
-                                mps.save()
-                            else:
-                                return Response(mps.errors, status=status.HTTP_400_BAD_REQUEST)
+                    mp = {}
+                    mp['codigo_prove'] = proveedor['rif']
+                    mp['codigo_mat'] = serializer.validated_data['codigo']
+                    mps = MaterialProveedorSerializer(data=mp)
+                    if(mps.is_valid(raise_exception=True)):
+                        mps.save()
+                    else:
+                        return Response(mps.errors, status=status.HTTP_400_BAD_REQUEST)
             else:
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             return Response({"msg": "Material Actualizado Satisfactoria mente"}, status=status.HTTP_200_OK)
