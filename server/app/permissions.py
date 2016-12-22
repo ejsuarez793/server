@@ -1,7 +1,6 @@
 from rest_framework import permissions
 from django.contrib.auth.models import User
 from app.models import Trabajador
-from rest_framework.response import Response
 
 
 SAFE_METHODS = ['GET', 'HEAD', 'OPTIONS']
@@ -66,16 +65,16 @@ class esVendedor(permissions.BasePermission):
             return False
 
 
-"""class esCoordinadorOesTecnico(permissions.BasePermission):
+class esCoordinadorOesVendedor(permissions.BasePermission):
     message = 'El usuario no es Coordinador o Tecnico.'
 
     def has_permission(self, request, view):
         try:
             usuario = User.objects.get(username=request.user)
             trabajador = Trabajador.objects.get(usuario_id=usuario.id)
-            if (trabajador.cargo == "c" or trabajador.cargo == "t"):
+            if (trabajador.cargo == "c" or trabajador.cargo == "v"):
                 return True
             else:
                 return False
         except:
-            return False"""
+            return False

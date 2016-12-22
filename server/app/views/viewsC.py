@@ -1,8 +1,8 @@
 from django.contrib.auth.models import User
-from app.models import Trabajador, Solicitud, Servicio,Proyecto, Cliente,Reporte_inicial,Presupuesto, Servicio_presupuesto, Material_presupuesto
+from app.models import Trabajador, Solicitud, Servicio,Proyecto,Material, Cliente,Reporte_inicial,Presupuesto, Servicio_presupuesto, Material_presupuesto
 from app.serializers.serializersAll import TrabajadorSerializer
 from app.serializers.serializersV import ClienteSerializer
-from app.serializers.serializersC import ProyectoSerializer, PresupuestoSerializer, Servicio_presupuestoSerializer, Material_presupuestoSerializer, SolicitudSerializer, SolicitudSerializerAll, ProyectoTecnicoSerializer, ServicioSerializer, ReporteInicialSerializer
+from app.serializers.serializersC import ProyectoSerializer, PresupuestoSerializer, MaterialSerializer, Servicio_presupuestoSerializer, Material_presupuestoSerializer, SolicitudSerializer, SolicitudSerializerAll, ProyectoTecnicoSerializer, ServicioSerializer, ReporteInicialSerializer
 from django.db import transaction
 from rest_framework.permissions import (
     AllowAny,
@@ -14,8 +14,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import generics
-from app.permissions import esCoordinador
-
+from app.permissions import esCoordinador, esCoordinadorOesVendedor
 
 
 def viewsCoordinador(arg):
@@ -56,10 +55,18 @@ class ProyectoDetail(APIView):
             servicios = Servicio_presupuesto.objects.filter(codigo_pre=presupuesto['codigo'])
             s_servicios = Servicio_presupuestoSerializer(servicios, many=True)
             presupuesto['servicios'] = s_servicios.data
+            for servicio in presupuesto['servicios']:
+                ser = Servicio.objects.get(codigo=servicio['codigo_ser'])
+                s_ser = ServicioSerializer(ser)
+                servicio['desc'] = s_ser.data['desc']
 
             materiales = Material_presupuesto.objects.filter(codigo_pre=presupuesto['codigo'])
             s_materiales = Material_presupuestoSerializer(materiales, many=True)
             presupuesto['materiales'] = s_materiales.data
+            for material in presupuesto['materiales']:
+                mat = Material.objects.get(codigo=material['codigo_mat'])
+                s_mat = MaterialSerializer(mat)
+                material['desc'] = s_mat.data['desc']
         proyecto = s_proyecto.data
         proyecto['cliente'] = s_cliente.data
         proyecto['presupuestos'] = s_presupuestos.data
@@ -96,7 +103,7 @@ class PresupuestoList(APIView):
 
 
 class PresupuestoDetail(APIView):
-    permission_classes = [IsAuthenticated, esCoordinador]
+    permission_classes = [IsAuthenticated, esCoordinadorOesVendedor]
 
     def patch(self, request, pro_pk, pre_pk, format=None):
 
@@ -121,9 +128,13 @@ class PresupuestoDetail(APIView):
                             s_material = Material_presupuestoSerializer(data=material)
                             if (s_material.is_valid(raise_exception=True)):
                                 s_material.save()
-                return Response("Ok", status=status.HTTP_200_OK)
+                return Response("Editado", status=status.HTTP_200_OK)
         except Exception as e:
             return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request, pro_pk, pre_pk, format=None):
+        print("ok")
+        return Response("Ok", status=status.HTTP_200_OK)
 
 
 class Tecnicos(APIView):

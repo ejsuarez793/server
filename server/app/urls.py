@@ -22,6 +22,7 @@ urlpatterns = [
     url(r'^validar/cliente/$', ValidarCliente.as_view()),
     url(r'^solicitud/$', SolicitudList.as_view()),
 
+
     url(r'^proyecto/$', ProyectoList.as_view()),
     url(r'^proyecto/(?P<pk>[\w\-]+)/$', ProyectoDetail.as_view()),
     url(r'^proyecto/(?P<pk>[\w\-]+)/presupuesto/$', PresupuestoList.as_view()),
