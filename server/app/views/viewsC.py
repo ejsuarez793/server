@@ -1,8 +1,8 @@
 from django.contrib.auth.models import User
-from app.models import Trabajador, Solicitud, Servicio,Proyecto,Material, Cliente,Reporte_inicial,Presupuesto, Servicio_presupuesto, Material_presupuesto
+from app.models import Trabajador, Solicitud, Servicio,Proyecto, Causa_rechazo, Material, Cliente,Reporte_inicial,Presupuesto, Servicio_presupuesto, Material_presupuesto
 from app.serializers.serializersAll import TrabajadorSerializer
 from app.serializers.serializersV import ClienteSerializer
-from app.serializers.serializersC import ProyectoSerializer, PresupuestoSerializer, MaterialSerializer, Servicio_presupuestoSerializer, Material_presupuestoSerializer, SolicitudSerializer, SolicitudSerializerAll, ProyectoTecnicoSerializer, ServicioSerializer, ReporteInicialSerializer
+from app.serializers.serializersC import ProyectoSerializer, PresupuestoSerializer, Causa_rechazoSerializer, MaterialSerializer, Servicio_presupuestoSerializer, Material_presupuestoSerializer, SolicitudSerializer, SolicitudSerializerAll, ProyectoTecnicoSerializer, ServicioSerializer, ReporteInicialSerializer
 from django.db import transaction
 from rest_framework.permissions import (
     AllowAny,
@@ -67,9 +67,17 @@ class ProyectoDetail(APIView):
                 mat = Material.objects.get(codigo=material['codigo_mat'])
                 s_mat = MaterialSerializer(mat)
                 material['desc'] = s_mat.data['desc']
+
+        causa_rechazo = Causa_rechazo.objects.get(codigo_pro=s_proyecto.data['codigo'])
+
         proyecto = s_proyecto.data
         proyecto['cliente'] = s_cliente.data
         proyecto['presupuestos'] = s_presupuestos.data
+        if (causa_rechazo is None):
+            proyecto['causa_rechazo'] = None
+        else:
+            s_causa_rechazo = Causa_rechazoSerializer(causa_rechazo)
+            proyecto['causa_rechazo'] = s_causa_rechazo.data
         return Response(proyecto, status=status.HTTP_200_OK)
 
 
@@ -105,7 +113,7 @@ class PresupuestoList(APIView):
 class PresupuestoDetail(APIView):
     permission_classes = [IsAuthenticated, esCoordinadorOesVendedor]
 
-    def patch(self, request, pro_pk, pre_pk, format=None):
+    def patch(self, request, pro_pk, pre_pk, format=None):# este verbo lo usa el coordinador para editar los mat y serv del presupuesto
 
         try:
             with transaction.atomic():
@@ -132,9 +140,18 @@ class PresupuestoDetail(APIView):
         except Exception as e:
             return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 
-    def put(self, request, pro_pk, pre_pk, format=None):
-        print("ok")
-        return Response("Ok", status=status.HTTP_200_OK)
+    def put(self, request, pro_pk, pre_pk, format=None):#este verbo lo usa el vendedor para editar campos presupuestos
+        try:
+            presupuesto = Presupuesto.objects.get(codigo=pre_pk)
+            if(presupuesto.estatus != "Aprobado"):
+                s_presupuesto = PresupuestoSerializer(presupuesto, data=request.data)
+                if (s_presupuesto.is_valid(raise_exception=True)):
+                    s_presupuesto.save()
+                    return Response(s_presupuesto.data, status=status.HTTP_200_OK)
+            else:
+                return Response("Presupuesto ya aprobado, no se puede editar", status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 
 
 class Tecnicos(APIView):

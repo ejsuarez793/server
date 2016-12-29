@@ -127,7 +127,7 @@ class Reporte_inicial(models.Model):
 
 class Causa_rechazo(models.Model):
     codigo = models.AutoField(primary_key=True)
-    codigo_pro = models.ForeignKey(Proyecto, on_delete=models.PROTECT)
+    codigo_pro = models.OneToOneField(Proyecto, on_delete=models.PROTECT)
     desc = models.CharField(max_length=200)
 
 
@@ -241,13 +241,12 @@ class Presupuesto(models.Model):
     codigo = models.CharField(primary_key=True, max_length=20)
     codigo_pro = models.ForeignKey(Proyecto, on_delete=models.PROTECT)
     ci_vendedor = models.ForeignKey(Trabajador, on_delete=models.PROTECT,
-                                    blank=True,  null=True)
+                                    blank=True, null=True)
     fecha = models.DateField()
     validez_o = models.IntegerField()
     descuento = models.IntegerField()
     observ = models.CharField(max_length=300, blank=True)
     desc = models.CharField(max_length=200)
-    cond_ent = models.CharField(max_length=500, blank=True)
     cond_g = models.CharField(max_length=500, blank=True)
     cond_p = models.CharField(max_length=500, blank=True)
     atencion_n = models.CharField(max_length=75)

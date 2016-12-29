@@ -4,7 +4,7 @@ from rest_framework.authtoken import views
 
 
 from app.views.viewsA import MaterialList, MaterialDetail, EquipoList, EquipoDetail,ProveedorList, ProveedorDetail
-from app.views.viewsV import ClienteList, ClienteDetail,SolicitudList
+from app.views.viewsV import ClienteList, ClienteDetail, SolicitudList, ProyectoProcesarEstatus, ProyectoCausaRechazo
 from app.views.viewsC import ProyectoList, ProyectoDetail, PresupuestoList, PresupuestoDetail, Tecnicos, ProcesarSolicitud, ServicioList ,ServicioDetail,ProyectoCoordinador
 from app.views.viewsT import ReporteInicial
 from app.views.viewsAll import ListUsers,ValidarTrabajador,ValidarUsuario,ValidarCliente,CurrentUser,ValidarServicio
@@ -21,6 +21,8 @@ urlpatterns = [
     url(r'^validar/trabajador/$', ValidarTrabajador.as_view()),
     url(r'^validar/cliente/$', ValidarCliente.as_view()),
     url(r'^solicitud/$', SolicitudList.as_view()),
+    url(r'^proyecto/(?P<pk>[\w\-]+)/estatus/$', ProyectoProcesarEstatus.as_view()),
+    url(r'^proyecto/(?P<pk>[\w\-]+)/causaRechazo/$', ProyectoCausaRechazo.as_view()),
 
 
     url(r'^proyecto/$', ProyectoList.as_view()),
