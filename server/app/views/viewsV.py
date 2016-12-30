@@ -16,7 +16,7 @@ from django.db import transaction
 
 
 from app.permissions import esVendedor
-from app.serializers.serializersV import ProyectoEstatusSerializer, PresupuestoSerializer
+from app.serializers.serializersV import ProyectoEstatusSerializer, PresupuestoSerializer, EncuestaSerializer, PreguntaSerializer
 from app.models import Proyecto, Presupuesto, Material_presupuesto, Servicio_presupuesto
 
 
@@ -83,5 +83,24 @@ class ProyectoCausaRechazo(APIView):
             if(s_causa_rechazo.is_valid(raise_exception=True)):
                 s_causa_rechazo.save()
                 return Response(s_causa_rechazo.data, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
+
+
+class ProyectoEncuesta(APIView):
+
+     def post(self, request, pk, format=None):
+        try:
+            with transaction.atomic():
+                s_encuesta = EncuestaSerializer(data=request.data['encuesta'])
+                if (s_encuesta.is_valid(raise_exception=True)):
+                    s_encuesta.save()
+                    s_preguntas = PreguntaSerializer(data=request.data['preguntas'],many=True)
+                    for pregunta in s_preguntas.initial_data:
+                        pregunta['codigo_en'] = s_encuesta.data['codigo']
+                    if(s_preguntas.is_valid(raise_exception=True)):
+                        s_preguntas.save()
+                        s_encuesta.data['preguntas'] = s_preguntas.data
+                return Response(s_encuesta.data, status=status.HTTP_200_OK)
         except Exception as e:
             return Response(str(e), status=status.HTTP_400_BAD_REQUEST)

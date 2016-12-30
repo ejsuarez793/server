@@ -68,16 +68,18 @@ class ProyectoDetail(APIView):
                 s_mat = MaterialSerializer(mat)
                 material['desc'] = s_mat.data['desc']
 
-        causa_rechazo = Causa_rechazo.objects.get(codigo_pro=s_proyecto.data['codigo'])
 
         proyecto = s_proyecto.data
         proyecto['cliente'] = s_cliente.data
         proyecto['presupuestos'] = s_presupuestos.data
-        if (causa_rechazo is None):
-            proyecto['causa_rechazo'] = None
-        else:
+
+        try:
+            causa_rechazo = Causa_rechazo.objects.get(codigo_pro=s_proyecto.data['codigo'])
             s_causa_rechazo = Causa_rechazoSerializer(causa_rechazo)
             proyecto['causa_rechazo'] = s_causa_rechazo.data
+        except Causa_rechazo.DoesNotExist:
+            proyecto['causa_rechazo'] = None
+
         return Response(proyecto, status=status.HTTP_200_OK)
 
 

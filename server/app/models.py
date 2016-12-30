@@ -134,8 +134,8 @@ class Causa_rechazo(models.Model):
 # aqui cambio codigo p a codigo pro y estatus
 class Encuesta(models.Model):
     codigo = models.AutoField(primary_key=True)
-    codigo_pro = models.ForeignKey(Proyecto, on_delete=models.PROTECT)
-    nombre = models.CharField(max_length=30)
+    codigo_pro = models.OneToOneField(Proyecto, on_delete=models.PROTECT)
+    nombre = models.CharField(max_length=150)
     completado = models.BooleanField(default=False)
 
 
@@ -150,8 +150,8 @@ class Pregunta(models.Model):
     )
     codigo = models.AutoField(primary_key=True)
     codigo_en = models.ForeignKey(Encuesta, on_delete=models.PROTECT)
-    pregunta = models.CharField(max_length=50)
-    repuesta = models.CharField(max_length=1, choices=opt)
+    pregunta = models.CharField(max_length=150)
+    respuesta = models.CharField(max_length=1, choices=opt)
 
 
 class Proyecto_tecnico(models.Model):
