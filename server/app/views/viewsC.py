@@ -1,8 +1,8 @@
 from django.contrib.auth.models import User
-from app.models import Trabajador, Solicitud, Servicio,Proyecto, Causa_rechazo, Material, Cliente,Reporte_inicial,Presupuesto, Servicio_presupuesto, Material_presupuesto
+from app.models import Trabajador, Solicitud, Servicio,Proyecto, Causa_rechazo, Encuesta, Pregunta, Material, Cliente,Reporte_inicial,Presupuesto, Servicio_presupuesto, Material_presupuesto
 from app.serializers.serializersAll import TrabajadorSerializer
 from app.serializers.serializersV import ClienteSerializer
-from app.serializers.serializersC import ProyectoSerializer, PresupuestoSerializer, Causa_rechazoSerializer, MaterialSerializer, Servicio_presupuestoSerializer, Material_presupuestoSerializer, SolicitudSerializer, SolicitudSerializerAll, ProyectoTecnicoSerializer, ServicioSerializer, ReporteInicialSerializer
+from app.serializers.serializersC import ProyectoSerializer, PresupuestoSerializer, Causa_rechazoSerializer, PreguntaSerializer, EncuestaSerializer, MaterialSerializer, Servicio_presupuestoSerializer, Material_presupuestoSerializer, SolicitudSerializer, SolicitudSerializerAll, ProyectoTecnicoSerializer, ServicioSerializer, ReporteInicialSerializer
 from django.db import transaction
 from rest_framework.permissions import (
     AllowAny,
@@ -80,6 +80,16 @@ class ProyectoDetail(APIView):
         except Causa_rechazo.DoesNotExist:
             proyecto['causa_rechazo'] = None
 
+        try:
+            encuesta = Encuesta.objects.get(codigo_pro=s_proyecto.data['codigo'])
+            s_encuesta = EncuestaSerializer(encuesta)
+            preguntas = Pregunta.objects.filter(codigo_en=s_encuesta.data['codigo'])
+            s_preguntas = PreguntaSerializer(preguntas,many=True)
+            proyecto['encuesta'] = s_encuesta.data
+            proyecto['encuesta']['preguntas'] = s_preguntas.data
+        except (Causa_rechazo.DoesNotExist, Encuesta.DoesNotExist):
+            proyecto['encuesta'] = None
+
         return Response(proyecto, status=status.HTTP_200_OK)
 
 
@@ -149,9 +159,13 @@ class PresupuestoDetail(APIView):
                 s_presupuesto = PresupuestoSerializer(presupuesto, data=request.data)
                 if (s_presupuesto.is_valid(raise_exception=True)):
                     s_presupuesto.save()
-                    return Response(s_presupuesto.data, status=status.HTTP_200_OK)
+                    msg = "Presupuesto " +s_presupuesto.validated_data['codigo']+" editado exitosamente!"
+                    data = {}
+                    data['data'] = s_presupuesto.data
+                    data['msg'] = msg
+                    return Response(data, status=status.HTTP_200_OK)
             else:
-                return Response("Presupuesto ya aprobado, no se puede editar", status=status.HTTP_400_BAD_REQUEST)
+                return Response("Presupuesto " + presupuesto.codigo+" ya aprobado, no se puede editar", status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 

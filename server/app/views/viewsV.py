@@ -13,6 +13,7 @@ from rest_framework.permissions import (
 from rest_framework.response import Response
 from rest_framework import status
 from django.db import transaction
+import json
 
 
 from app.permissions import esVendedor
@@ -56,10 +57,14 @@ class ProyectoProcesarEstatus(APIView):
                         if(s_proyecto.validated_data['estatus']=="Aprobado"):
                             flag = False
                             for presupuesto in s_presupuestos.data:
-                                if (presupuesto['estatus']!="Aprobado"):
-                                    Material_presupuesto.objects.filter(codigo_pre=presupuesto['codigo']).delete()
-                                    Servicio_presupuesto.objects.filter(codigo_pre=presupuesto['codigo']).delete()
-                                    Presupuesto.objects.get(codigo=presupuesto['codigo']).delete()
+                                if (presupuesto['estatus']=="Preventa"):
+                                    return Response("Proyecto tiene un presupuesto que sigue en preventa",status=status.HTTP_400_BAD_REQUEST)
+                            for presupuesto in s_presupuestos.data:
+                                if (presupuesto['estatus']=="Rechazado"):
+                                    print("p")
+                                    #Material_presupuesto.objects.filter(codigo_pre=presupuesto['codigo']).delete()
+                                    #Servicio_presupuesto.objects.filter(codigo_pre=presupuesto['codigo']).delete()
+                                    #Presupuesto.objects.get(codigo=presupuesto['codigo']).delete()
 
                         elif(s_proyecto.validated_data['estatus']=="Rechazado"):
                             flag = False
@@ -69,7 +74,11 @@ class ProyectoProcesarEstatus(APIView):
                             if (flag==True):
                                 return Response("Proyecto tiene un presupuesto que no ha sido rechazado",status=status.HTTP_400_BAD_REQUEST)
                         s_proyecto.save()
-                return Response(s_proyecto.data, status=status.HTTP_200_OK)
+                        msg = "Proyecto " +s_proyecto.validated_data['estatus']+" Exitosamente!"
+                        data = {}
+                        data['data'] = s_proyecto.data
+                        data['msg'] = msg
+                return Response(data, status=status.HTTP_200_OK)
         except Exception as e:
             return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 
@@ -82,7 +91,12 @@ class ProyectoCausaRechazo(APIView):
             s_causa_rechazo = Causa_rechazoSerializer(data=request.data)
             if(s_causa_rechazo.is_valid(raise_exception=True)):
                 s_causa_rechazo.save()
-                return Response(s_causa_rechazo.data, status=status.HTTP_201_CREATED)
+                msg = "Causa de rechazo almacenada exitosamente!"
+
+                data = {}
+                data['data'] = s_causa_rechazo.data
+                data['msg'] = msg
+                return Response(data, status=status.HTTP_201_CREATED)
         except Exception as e:
             return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 
@@ -101,6 +115,10 @@ class ProyectoEncuesta(APIView):
                     if(s_preguntas.is_valid(raise_exception=True)):
                         s_preguntas.save()
                         s_encuesta.data['preguntas'] = s_preguntas.data
-                return Response(s_encuesta.data, status=status.HTTP_200_OK)
+                    msg = "Encuesta completada exitosamente!"
+                    data = {}
+                    data['data'] = s_encuesta.data
+                    data['msg'] = msg
+                return Response(data, status=status.HTTP_200_OK)
         except Exception as e:
             return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
