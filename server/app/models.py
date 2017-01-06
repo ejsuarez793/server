@@ -166,21 +166,21 @@ class Proyecto_tecnico(models.Model):
 #  aqui se cambio se puso codigo y letra, estaus igual max len 1
 class Etapa(models.Model):
     est = (
-        ('n', 'No Empezada'),
-        ('e', 'Ejecucion'),
-        ('p', 'Problemas'),
-        ('c', 'culminado'),
+        ('Pendiente', 'Pendiente'),
+        ('Ejecucion', 'Ejecucion'),
+        ('Problemas', 'Problemas'),
+        ('Culminado', 'Culminado'),
     )
     codigo = models.AutoField(primary_key=True)
     letra = models.CharField(max_length=1)
     codigo_pro = models.ForeignKey(Proyecto, on_delete=models.PROTECT)
     codigo_rd = models.ForeignKey('Reporte_detalle', on_delete=models.PROTECT,
-                                  blank=True)
-    nombre = models.CharField(max_length=50)
-    f_ini = models.DateField(blank=True)
-    f_fin = models.DateField(blank=True)
-    f_est = models.DateField(blank=True)
-    estatus = models.CharField(max_length=1, choices=est)
+                                  blank=True, null=True)
+    nombre = models.CharField(max_length=100)
+    f_ini = models.DateField(blank=True, null=True)
+    f_fin = models.DateField(blank=True, null=True)
+    f_est = models.DateField(blank=True, null=True)
+    estatus = models.CharField(max_length=10, choices=est, default="Pendiente")
     facturada = models.BooleanField(default=False)
 
     class Meta:

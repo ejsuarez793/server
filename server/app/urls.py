@@ -5,7 +5,7 @@ from rest_framework.authtoken import views
 
 from app.views.viewsA import MaterialList, MaterialDetail, EquipoList, EquipoDetail,ProveedorList, ProveedorDetail
 from app.views.viewsV import ClienteList, ClienteDetail, SolicitudList, ProyectoProcesarEstatus, ProyectoCausaRechazo, ProyectoEncuesta
-from app.views.viewsC import ProyectoList, ProyectoDetail, PresupuestoList, PresupuestoDetail, Tecnicos, ProcesarSolicitud, ServicioList ,ServicioDetail,ProyectoCoordinador
+from app.views.viewsC import ProyectoList, ProyectoDetail,ProyectoEtapa, PresupuestoList, PresupuestoDetail, Tecnicos, ProcesarSolicitud, ServicioList ,ServicioDetail,ProyectoCoordinador
 from app.views.viewsT import ReporteInicial
 from app.views.viewsAll import ListUsers,ValidarTrabajador,ValidarUsuario,ValidarCliente,CurrentUser,ValidarServicio
 
@@ -28,6 +28,7 @@ urlpatterns = [
 
     url(r'^proyecto/$', ProyectoList.as_view()),
     url(r'^proyecto/(?P<pk>[\w\-]+)/$', ProyectoDetail.as_view()),
+    url(r'^proyecto/(?P<pk>[\w\-]+)/etapa/$', ProyectoEtapa.as_view()),
     url(r'^proyecto/(?P<pk>[\w\-]+)/presupuesto/$', PresupuestoList.as_view()),
     url(r'^proyecto/(?P<pro_pk>[\w\-]+)/presupuesto/(?P<pre_pk>[\w\-]+)/$', PresupuestoDetail.as_view()),
     url(r'^tecnicos/$', Tecnicos.as_view()),

@@ -1,8 +1,8 @@
 from django.contrib.auth.models import User
-from app.models import Trabajador, Solicitud, Servicio,Proyecto, Causa_rechazo, Encuesta, Pregunta, Material, Cliente,Reporte_inicial,Presupuesto, Servicio_presupuesto, Material_presupuesto
+from app.models import Trabajador, Solicitud, Servicio,Proyecto, Etapa,Causa_rechazo, Encuesta, Pregunta, Material, Cliente,Reporte_inicial,Presupuesto, Servicio_presupuesto, Material_presupuesto
 from app.serializers.serializersAll import TrabajadorSerializer
 from app.serializers.serializersV import ClienteSerializer
-from app.serializers.serializersC import ProyectoSerializer, PresupuestoSerializer, Causa_rechazoSerializer, PreguntaSerializer, EncuestaSerializer, MaterialSerializer, Servicio_presupuestoSerializer, Material_presupuestoSerializer, SolicitudSerializer, SolicitudSerializerAll, ProyectoTecnicoSerializer, ServicioSerializer, ReporteInicialSerializer
+from app.serializers.serializersC import ProyectoSerializer, ProyectoSerializerPG, EtapaSerializer, PresupuestoSerializer, Causa_rechazoSerializer, PreguntaSerializer, EncuestaSerializer, MaterialSerializer, Servicio_presupuestoSerializer, Material_presupuestoSerializer, SolicitudSerializer, SolicitudSerializerAll, ProyectoTecnicoSerializer, ServicioSerializer, ReporteInicialSerializer
 from django.db import transaction
 from rest_framework.permissions import (
     AllowAny,
@@ -68,7 +68,6 @@ class ProyectoDetail(APIView):
                 s_mat = MaterialSerializer(mat)
                 material['desc'] = s_mat.data['desc']
 
-
         proyecto = s_proyecto.data
         proyecto['cliente'] = s_cliente.data
         proyecto['presupuestos'] = s_presupuestos.data
@@ -79,6 +78,16 @@ class ProyectoDetail(APIView):
             proyecto['causa_rechazo'] = s_causa_rechazo.data
         except Causa_rechazo.DoesNotExist:
             proyecto['causa_rechazo'] = None
+
+
+        try:
+            etapas = Etapa.objects.filter(codigo_pro=s_proyecto.data['codigo'])
+            s_etapa = EtapaSerializer(etapas, many=True)
+            proyecto['etapas'] = s_etapa.data
+        except Etapa.DoesNotExist:
+            proyecto['etapas'] = None
+
+
 
         try:
             encuesta = Encuesta.objects.get(codigo_pro=s_proyecto.data['codigo'])
@@ -91,6 +100,29 @@ class ProyectoDetail(APIView):
             proyecto['encuesta'] = None
 
         return Response(proyecto, status=status.HTTP_200_OK)
+
+    def patch(self, request, pk, format=None):
+        try:
+            proyecto = Proyecto.objects.get(codigo=pk)
+            s_proyecto = ProyectoSerializerPG(proyecto, data=request.data)
+            if (s_proyecto.is_valid(raise_exception=True)):
+                s_proyecto.save()
+                return Response(request.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
+
+
+class ProyectoEtapa(APIView):
+    permissions_classes = [IsAuthenticated, esCoordinador]
+
+    def post(self, request, pk, format=None):
+        try:
+            s_etapa = EtapaSerializer(data=request.data)
+            if(s_etapa.is_valid(raise_exception=True)):
+                s_etapa.save()
+                return Response(request.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 
 
 class PresupuestoList(APIView):
