@@ -1,8 +1,8 @@
 from django.contrib.auth.models import User
-from app.models import Trabajador, Solicitud, Servicio,Proyecto, Etapa,Causa_rechazo, Encuesta, Pregunta, Material, Cliente,Reporte_inicial,Presupuesto, Servicio_presupuesto, Material_presupuesto
+from app.models import Trabajador, Solicitud, Servicio,Proyecto, Etapa, Reporte_detalle, Reporte, Causa_rechazo, Encuesta, Pregunta, Material, Cliente,Reporte_inicial,Presupuesto, Servicio_presupuesto, Material_presupuesto
 from app.serializers.serializersAll import TrabajadorSerializer
 from app.serializers.serializersV import ClienteSerializer
-from app.serializers.serializersC import ProyectoSerializer, ProyectoSerializerPG, EtapaSerializer, PresupuestoSerializer, Causa_rechazoSerializer, PreguntaSerializer, EncuestaSerializer, MaterialSerializer, Servicio_presupuestoSerializer, Material_presupuestoSerializer, SolicitudSerializer, SolicitudSerializerAll, ProyectoTecnicoSerializer, ServicioSerializer, ReporteInicialSerializer
+from app.serializers.serializersC import ProyectoSerializer, ProyectoSerializerPG, EtapaSerializer, ReporteDetalleSerializer, ReporteSerializer, PresupuestoSerializer, Causa_rechazoSerializer, PreguntaSerializer, EncuestaSerializer, MaterialSerializer, Servicio_presupuestoSerializer, Material_presupuestoSerializer, SolicitudSerializer, SolicitudSerializerAll, ProyectoTecnicoSerializer, ServicioSerializer, ReporteInicialSerializer
 from django.db import transaction
 from rest_framework.permissions import (
     AllowAny,
@@ -82,8 +82,19 @@ class ProyectoDetail(APIView):
 
         try:
             etapas = Etapa.objects.filter(codigo_pro=s_proyecto.data['codigo'])
-            s_etapa = EtapaSerializer(etapas, many=True)
-            proyecto['etapas'] = s_etapa.data
+            s_etapas = EtapaSerializer(etapas, many=True)
+            try:
+                for etapa in s_etapas.data: 
+                    reporte_detalle = Reporte_detalle.objects.get(codigo=etapa['codigo_rd'])
+                    s_reporte_detalle = ReporteDetalleSerializer(reporte_detalle)
+                    etapa['reporte_detalle'] = s_reporte_detalle.data
+
+                    reportes = Reporte.objects.filter(codigo_eta=etapa['codigo'])
+                    s_reportes = ReporteSerializer(reportes, many=True)
+                    etapa['reportes'] = s_reportes.data
+            except Reporte_detalle.DoesNotExist: 
+                s_etapas.data['reporte_detalle'] = None
+            proyecto['etapas'] = s_etapas.data
         except Etapa.DoesNotExist:
             proyecto['etapas'] = None
 
@@ -107,7 +118,10 @@ class ProyectoDetail(APIView):
             s_proyecto = ProyectoSerializerPG(proyecto, data=request.data)
             if (s_proyecto.is_valid(raise_exception=True)):
                 s_proyecto.save()
-                return Response(request.data, status=status.HTTP_200_OK)
+                data = {}
+                data['data'] = s_proyecto.data
+                data['msg'] = "Proyecto editado exitosamente!"
+                return Response(data, status=status.HTTP_200_OK)
         except Exception as e:
             return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 
@@ -120,10 +134,29 @@ class ProyectoEtapa(APIView):
             s_etapa = EtapaSerializer(data=request.data)
             if(s_etapa.is_valid(raise_exception=True)):
                 s_etapa.save()
-                return Response(request.data, status=status.HTTP_200_OK)
+                data = {}
+                data['data'] = s_etapa.data
+                data['msg'] = "Etapa creada exitosamente!"
+                return Response(data, status=status.HTTP_200_OK)
         except Exception as e:
             return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 
+
+class ProyectoEtapaDetail(APIView):
+     permissions_classes = [IsAuthenticated, esCoordinador]
+
+     def patch(self, request, pk_p,pk_e, format=None):
+        try:
+            etapa = Etapa.objects.get(codigo=pk_e)
+            s_etapa = EtapaSerializer(etapa,data=request.data)
+            if(s_etapa.is_valid(raise_exception=True)):
+                s_etapa.save()
+                data = {}
+                data['data'] = s_etapa.data
+                data['msg'] = "Etapa editada exitosamente!"
+                return Response(data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 
 class PresupuestoList(APIView):
     permission_classes = [IsAuthenticated, esCoordinador]
