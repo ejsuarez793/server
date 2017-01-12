@@ -8,9 +8,10 @@ from app.permissions import esTecnicoOsoloLectura, esCoordinador
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from django.db import transaction
 
 from app.serializers.serializersT import ReporteInicialSerializer, ReporteDetalleSerializer, ReporteSerializer
-from app.models import Proyecto, Etapa
+from app.models import Proyecto, Etapa, Reporte
 
 
 def viewsTecnico(arg):
@@ -66,6 +67,20 @@ class ReporteDetail(APIView):
                 data = {}
                 data['data'] = reporte.data
                 data['msg'] = "Reporte enviado exitosamente!"
+                return Response(data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
+
+    def patch(self, request, pk_p, pk_e, format=None):
+        try:
+            with transaction.atomic():
+                for codigo in request.data['codigos']:
+                    reporte = Reporte.objects.get(codigo=codigo)
+                    reporte.leido=True
+                    reporte.save()
+                data = {}
+                data['data'] = request.data
+                data['msg'] = "Reportes marcados como leidos exitosamente!"
                 return Response(data, status=status.HTTP_200_OK)
         except Exception as e:
             return Response(str(e), status=status.HTTP_400_BAD_REQUEST)

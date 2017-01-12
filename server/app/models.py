@@ -196,7 +196,7 @@ class Actividad(models.Model):
     completada = models.BooleanField(default=False)
 
     class Meta:
-        unique_together = ('codigo', 'nro',)
+        unique_together = ('codigo_eta', 'nro',)
 
 
 #  persona max len 60 y completado bolean

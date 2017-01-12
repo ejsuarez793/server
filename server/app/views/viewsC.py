@@ -1,8 +1,8 @@
 from django.contrib.auth.models import User
-from app.models import Trabajador, Solicitud, Servicio,Proyecto, Etapa, Reporte_detalle, Reporte, Causa_rechazo, Encuesta, Pregunta, Material, Cliente,Reporte_inicial,Presupuesto, Servicio_presupuesto, Material_presupuesto
+from app.models import Trabajador, Solicitud, Servicio,Proyecto, Etapa, Actividad, Reporte_detalle, Reporte, Causa_rechazo, Encuesta, Pregunta, Material, Cliente,Reporte_inicial,Presupuesto, Servicio_presupuesto, Material_presupuesto
 from app.serializers.serializersAll import TrabajadorSerializer
 from app.serializers.serializersV import ClienteSerializer
-from app.serializers.serializersC import ProyectoSerializer, ProyectoSerializerPG, EtapaSerializer, ReporteDetalleSerializer, ReporteSerializer, PresupuestoSerializer, Causa_rechazoSerializer, PreguntaSerializer, EncuestaSerializer, MaterialSerializer, Servicio_presupuestoSerializer, Material_presupuestoSerializer, SolicitudSerializer, SolicitudSerializerAll, ProyectoTecnicoSerializer, ServicioSerializer, ReporteInicialSerializer
+from app.serializers.serializersC import ProyectoSerializer, ProyectoSerializerPG, EtapaSerializer, ActividadSerializer, ReporteDetalleSerializer, ReporteSerializer, PresupuestoSerializer, Causa_rechazoSerializer, PreguntaSerializer, EncuestaSerializer, MaterialSerializer, Servicio_presupuestoSerializer, Material_presupuestoSerializer, SolicitudSerializer, SolicitudSerializerAll, ProyectoTecnicoSerializer, ServicioSerializer, ReporteInicialSerializer
 from django.db import transaction
 from rest_framework.permissions import (
     AllowAny,
@@ -89,9 +89,14 @@ class ProyectoDetail(APIView):
                     s_reporte_detalle = ReporteDetalleSerializer(reporte_detalle)
                     etapa['reporte_detalle'] = s_reporte_detalle.data
 
-                    reportes = Reporte.objects.filter(codigo_eta=etapa['codigo'])
+                    reportes = Reporte.objects.filter(codigo_eta=etapa['codigo']).order_by('fecha')
                     s_reportes = ReporteSerializer(reportes, many=True)
                     etapa['reportes'] = s_reportes.data
+
+                    actividades = Actividad.objects.filter(codigo_eta=etapa['codigo'])
+                    s_actividades = ActividadSerializer(actividades, many=True)
+                    etapa['actividades'] = s_actividades.data
+
             except Reporte_detalle.DoesNotExist: 
                 s_etapas.data['reporte_detalle'] = None
             proyecto['etapas'] = s_etapas.data
@@ -157,6 +162,24 @@ class ProyectoEtapaDetail(APIView):
                 return Response(data, status=status.HTTP_200_OK)
         except Exception as e:
             return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
+
+
+class ActividadDetail(APIView):
+    permissions_classes = [IsAuthenticated, esCoordinador]
+
+    def post(self, request, pk_p,pk_e, format=None):
+        try:
+            print(request.data)
+            s_actividad = ActividadSerializer(data=request.data, many=True)
+            if (s_actividad.is_valid(raise_exception=True)):
+                s_actividad.save()
+                data = {}
+                data['data'] = s_actividad.data
+                data['msg'] = "Actividades definidas exitosamente!"
+                return Response(data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
+
 
 class PresupuestoList(APIView):
     permission_classes = [IsAuthenticated, esCoordinador]
