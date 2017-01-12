@@ -1,5 +1,5 @@
 from django.contrib.auth.models import User
-from app.models import Trabajador, Solicitud, Servicio,Proyecto, Etapa, Actividad, Reporte_detalle, Reporte, Causa_rechazo, Encuesta, Pregunta, Material, Cliente,Reporte_inicial,Presupuesto, Servicio_presupuesto, Material_presupuesto
+from app.models import Trabajador, Solicitud, Servicio,Proyecto, Etapa, Actividad, Reporte_detalle, Reporte, Causa_rechazo, Encuesta, Pregunta, Etapa_tecnico_movimiento, Material_movimiento, Material, Cliente,Reporte_inicial,Presupuesto, Servicio_presupuesto, Material_presupuesto
 from app.serializers.serializersAll import TrabajadorSerializer
 from app.serializers.serializersV import ClienteSerializer
 from app.serializers.serializersC import ProyectoSerializer, ProyectoSerializerPG, EtapaSerializer, ActividadSerializer, ReporteDetalleSerializer, ReporteSerializer, PresupuestoSerializer, Causa_rechazoSerializer, PreguntaSerializer, EncuestaSerializer, MaterialSerializer, Servicio_presupuestoSerializer, Material_presupuestoSerializer, SolicitudSerializer, SolicitudSerializerAll, ProyectoTecnicoSerializer, ServicioSerializer, ReporteInicialSerializer
@@ -179,6 +179,64 @@ class ActividadDetail(APIView):
                 return Response(data, status=status.HTTP_200_OK)
         except Exception as e:
             return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
+
+
+class ProyectoMaterialDesglose(APIView):
+    permissions_classes = [IsAuthenticated, esCoordinador]
+
+    def get(self, request, pk, format=None):
+        data_desglose = {}
+        data_presupuestos = []
+        data_egresados = []
+        data_retornados = []
+        aux = {}
+
+        #primero buscamos los materiales que estan en los presupuestos arpobados del proyecto
+        presupuestos = Presupuesto.objects.filter(codigo_pro=pk)
+        for presupuesto in presupuestos:
+            if (presupuesto.estatus == "Aprobado"):
+                materiales_presupuesto = Material_presupuesto.objects.filter(codigo_pre=presupuesto.codigo)
+                for material_presupuesto in materiales_presupuesto:
+                    aux['codigo_pre'] = presupuesto.codigo
+                    aux['codigo_mat'] = material_presupuesto.codigo_mat.codigo
+                    aux['nombre'] = material_presupuesto.codigo_mat.nombre
+                    aux['desc'] = material_presupuesto.codigo_mat.desc
+                    aux['serial'] = material_presupuesto.codigo_mat.serial
+                    aux['cant'] = material_presupuesto.cantidad
+                    data_presupuestos.append(aux)
+        
+        """print("presupuestos materiales")
+        print(data_presupuestos)"""
+
+        #luego buscamos los materiales que han salido a una etapa del proyecto
+        aux = {}
+        etapas = Etapa.objects.filter(codigo_pro=pk)
+        for etapa in etapas:
+            etms = Etapa_tecnico_movimiento.objects.filter(codigo_eta=etapa.codigo)
+            for etm in etms:
+                mm = Material_movimiento.object.get(codigo_mov=etm.codigo_mov.codigo)
+                aux['codigo_mov'] = etm.codigo_mov.codigo
+                aux['tipo_mov'] = etm.codigo_mov.tipo
+                aux['codigo_mat'] = mm.codigo_mat.codigo
+                aux['nombre'] = mm.codigo_mat.nombre
+                aux['desc'] = mm.codigo_mat.desc
+                aux['serial'] = mm.codigo_mat.serial
+                aux['cant'] = mm.cantidad
+                aux['codigo_eta'] = etapa.codigo
+                aux['nombre_eta'] = etapa.nombre
+                if (etm.codigo_mov.tipo == "Egreso"):
+                    data_egresados.append(aux)
+                elif(etm.codigo_mov.tipo == "Retorno"):
+                    data_retornados.append(aux)
+        """print("materiales egresados")
+        print(data_egresados)
+        print("materiales retornados")
+        print(data_retornados)"""
+        data_desglose['presupuestos'] = data_presupuestos
+        data_desglose['egresados'] = data_egresados
+        data_desglose['retornados'] = data_retornados
+        print(data_desglose)
+        return Response("ok", status=status.HTTP_200_OK)
 
 
 class PresupuestoList(APIView):

@@ -344,15 +344,15 @@ class Factura(models.Model):
 #  max len 60
 class Movimiento(models.Model):
     opt = (
-        ('i', 'Ingreso'),
-        ('r', 'Retorno'),
-        ('e', 'Egreso'),
+        ('Ingreso', 'Ingreso'),
+        ('Retorno', 'Retorno'),
+        ('Egreso', 'Egreso'),
     )
     codigo = models.AutoField(primary_key=True)
     ci_almace = models.ForeignKey(Trabajador, on_delete=models.PROTECT,
                                   blank=True)
     fecha = models.DateField(blank=True)
-    tipo = models.CharField(max_length=1, choices=opt)
+    tipo = models.CharField(max_length=10, choices=opt)
     autorizado = models.BooleanField(default=False)
     f_sol = models.DateField(auto_now_add=True)
     codigo_ne = models.CharField(max_length=20, blank=True)
@@ -370,6 +370,14 @@ class Material_movimiento(models.Model):
 
     class Meta:
         unique_together = ('codigo_mov', 'codigo_mat',)
+
+
+class Etapa_tecnico_movimiento(models.Model):
+    codigo = models.AutoField(primary_key=True)
+    codigo_eta =  models.ForeignKey(Etapa, on_delete=models.PROTECT)
+    ci_tecnico = models.ForeignKey(Trabajador, on_delete=models.PROTECT,
+                                  blank=True)
+    codigo_mov  = models.ForeignKey(Movimiento, on_delete=models.PROTECT)
 
 
 # aqui se cambio equ

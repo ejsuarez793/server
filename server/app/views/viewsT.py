@@ -84,3 +84,14 @@ class ReporteDetail(APIView):
                 return Response(data, status=status.HTTP_200_OK)
         except Exception as e:
             return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
+
+# permite crear una solicitud de material para una etapa
+class SolicitudMaterialDetail(APIView):
+    permission_classes = [IsAuthenticated, esCoordinador]
+
+    def post(self, request, pk_p, pk_e, format=None):
+        try:
+            print("ok")
+            print(request.data)
+        except Exception as e:
+            return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
