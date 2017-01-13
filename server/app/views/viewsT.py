@@ -11,7 +11,7 @@ from rest_framework import status
 from django.db import transaction
 
 from app.serializers.serializersT import ReporteInicialSerializer, ReporteDetalleSerializer, ReporteSerializer
-from app.models import Proyecto, Etapa, Reporte
+from app.models import Proyecto, Etapa, Reporte, Movimiento, Material, Material_movimiento, Etapa_tecnico_movimiento, Trabajador
 
 
 def viewsTecnico(arg):
@@ -91,7 +91,21 @@ class SolicitudMaterialDetail(APIView):
 
     def post(self, request, pk_p, pk_e, format=None):
         try:
-            print("ok")
-            print(request.data)
+            with transaction.atomic():
+                movimiento = Movimiento.objects.create(tipo="Egreso")
+                tecnico = Trabajador.objects.get(ci=request.data['otros']['ci_tecnico'])
+
+                #print(movimiento.codigo)
+                for material in request.data['materiales']:
+                    print(material)
+                    m = Material.objects.get(codigo=material['codigo_mat'])
+                    Material_movimiento.objects.create(codigo_mov=movimiento, codigo_mat=m, cantidad=material['cant']);
+
+                etapa = Etapa.objects.get(codigo=request.data['otros']['codigo_eta'])
+                Etapa_tecnico_movimiento.objects.create(ci_tecnico=tecnico, codigo_eta=etapa, codigo_mov=movimiento)
+                data = {}
+                data['data'] = request.data
+                data['msg'] = "Solicitud enviada exitosamente!"
+                return Response(data, status=status.HTTP_200_OK)
         except Exception as e:
             return Response(str(e), status=status.HTTP_400_BAD_REQUEST)

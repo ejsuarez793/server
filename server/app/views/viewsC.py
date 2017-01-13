@@ -1,14 +1,14 @@
-from django.contrib.auth.models import User
+#from django.contrib.auth.models import User
 from app.models import Trabajador, Solicitud, Servicio,Proyecto, Etapa, Actividad, Reporte_detalle, Reporte, Causa_rechazo, Encuesta, Pregunta, Etapa_tecnico_movimiento, Material_movimiento, Material, Cliente,Reporte_inicial,Presupuesto, Servicio_presupuesto, Material_presupuesto
 from app.serializers.serializersAll import TrabajadorSerializer
 from app.serializers.serializersV import ClienteSerializer
 from app.serializers.serializersC import ProyectoSerializer, ProyectoSerializerPG, EtapaSerializer, ActividadSerializer, ReporteDetalleSerializer, ReporteSerializer, PresupuestoSerializer, Causa_rechazoSerializer, PreguntaSerializer, EncuestaSerializer, MaterialSerializer, Servicio_presupuestoSerializer, Material_presupuestoSerializer, SolicitudSerializer, SolicitudSerializerAll, ProyectoTecnicoSerializer, ServicioSerializer, ReporteInicialSerializer
 from django.db import transaction
 from rest_framework.permissions import (
-    AllowAny,
+    #AllowAny,
     IsAuthenticated,
-    IsAdminUser,
-    IsAuthenticatedOrReadOnly,
+    #IsAdminUser,
+    #IsAuthenticatedOrReadOnly,
 )
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -197,6 +197,7 @@ class ProyectoMaterialDesglose(APIView):
             if (presupuesto.estatus == "Aprobado"):
                 materiales_presupuesto = Material_presupuesto.objects.filter(codigo_pre=presupuesto.codigo)
                 for material_presupuesto in materiales_presupuesto:
+                    aux = {}
                     aux['codigo_pre'] = presupuesto.codigo
                     aux['codigo_mat'] = material_presupuesto.codigo_mat.codigo
                     aux['nombre'] = material_presupuesto.codigo_mat.nombre
@@ -204,7 +205,7 @@ class ProyectoMaterialDesglose(APIView):
                     aux['serial'] = material_presupuesto.codigo_mat.serial
                     aux['cant'] = material_presupuesto.cantidad
                     data_presupuestos.append(aux)
-        
+
         """print("presupuestos materiales")
         print(data_presupuestos)"""
 
@@ -214,20 +215,22 @@ class ProyectoMaterialDesglose(APIView):
         for etapa in etapas:
             etms = Etapa_tecnico_movimiento.objects.filter(codigo_eta=etapa.codigo)
             for etm in etms:
-                mm = Material_movimiento.object.get(codigo_mov=etm.codigo_mov.codigo)
-                aux['codigo_mov'] = etm.codigo_mov.codigo
-                aux['tipo_mov'] = etm.codigo_mov.tipo
-                aux['codigo_mat'] = mm.codigo_mat.codigo
-                aux['nombre'] = mm.codigo_mat.nombre
-                aux['desc'] = mm.codigo_mat.desc
-                aux['serial'] = mm.codigo_mat.serial
-                aux['cant'] = mm.cantidad
-                aux['codigo_eta'] = etapa.codigo
-                aux['nombre_eta'] = etapa.nombre
-                if (etm.codigo_mov.tipo == "Egreso"):
-                    data_egresados.append(aux)
-                elif(etm.codigo_mov.tipo == "Retorno"):
-                    data_retornados.append(aux)
+                if (etm.codigo_mov.completado==True):
+                    mm = Material_movimiento.object.get(codigo_mov=etm.codigo_mov.codigo)
+                    aux = {}
+                    aux['codigo_mov'] = etm.codigo_mov.codigo
+                    aux['tipo_mov'] = etm.codigo_mov.tipo
+                    aux['codigo_mat'] = mm.codigo_mat.codigo
+                    aux['nombre'] = mm.codigo_mat.nombre
+                    aux['desc'] = mm.codigo_mat.desc
+                    aux['serial'] = mm.codigo_mat.serial
+                    aux['cant'] = mm.cantidad
+                    aux['codigo_eta'] = etapa.codigo
+                    aux['nombre_eta'] = etapa.nombre
+                    if (etm.codigo_mov.tipo == "Egreso"):
+                        data_egresados.append(aux)
+                    elif(etm.codigo_mov.tipo == "Retorno"):
+                        data_retornados.append(aux)
         """print("materiales egresados")
         print(data_egresados)
         print("materiales retornados")
@@ -236,7 +239,7 @@ class ProyectoMaterialDesglose(APIView):
         data_desglose['egresados'] = data_egresados
         data_desglose['retornados'] = data_retornados
         print(data_desglose)
-        return Response("ok", status=status.HTTP_200_OK)
+        return Response(data_desglose, status=status.HTTP_200_OK)
 
 
 class PresupuestoList(APIView):

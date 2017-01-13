@@ -350,16 +350,17 @@ class Movimiento(models.Model):
     )
     codigo = models.AutoField(primary_key=True)
     ci_almace = models.ForeignKey(Trabajador, on_delete=models.PROTECT,
-                                  blank=True)
-    fecha = models.DateField(blank=True)
+                                  blank=True, null=True)
+    fecha = models.DateField(blank=True, null=True)
     tipo = models.CharField(max_length=10, choices=opt)
+    completado = models.BooleanField(default=False)
     autorizado = models.BooleanField(default=False)
     f_sol = models.DateField(auto_now_add=True)
-    codigo_ne = models.CharField(max_length=20, blank=True)
-    codigo_oc = models.CharField(max_length=20, blank=True)
-    persona_t = models.CharField(max_length=60, blank=True)
-    persona_e = models.CharField(max_length=60, blank=True)
-    proveedor = models.CharField(max_length=50, blank=True)
+    codigo_ne = models.CharField(max_length=20, blank=True, null=True)
+    codigo_oc = models.CharField(max_length=20, blank=True, null=True)
+    persona_t = models.CharField(max_length=60, blank=True, null=True)
+    persona_e = models.CharField(max_length=60, blank=True, null=True)
+    proveedor = models.CharField(max_length=50, blank=True, null=True)
 
 
 class Material_movimiento(models.Model):
