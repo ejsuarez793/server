@@ -10,7 +10,7 @@ from django.db import transaction, IntegrityError
 
 from app.permissions import esAlmacenista
 from app.serializers.serializersA import MaterialSerializer, EquipoSerializer, ProveedorSerializer, MaterialProveedorSerializer
-from app.models import Material, Equipo, Proveedor, Material_proveedor
+from app.models import Material, Equipo, Proveedor, Material_proveedor, Material_movimiento
 
 
 def viewsAlmacenista(arg):
@@ -85,6 +85,35 @@ class MaterialDetail(APIView):
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             return Response({"msg": "Material Actualizado Satisfactoria mente"}, status=status.HTTP_200_OK)
 
+
+class Disponibilidad(APIView):
+    permissions= [IsAuthenticated]
+
+    def get(self, request, sol, format=None):
+        print(sol)
+        mm = Material_movimiento.objects.filter(codigo_mov=sol)
+        aux = {}
+        disponible = True
+        aux['materiales'] = []
+        for material_solicitud in mm:
+            mi = Material.objects.get(codigo=material_solicitud.codigo_mat.codigo)
+            if (material_solicitud.cantidad > mi.cantidad):
+                aux_2 = {}
+                aux_2['codigo_mat'] = material_solicitud.codigo_mat.codigo
+                aux_2['nombre_mat'] = material_solicitud.codigo_mat.nombre
+                aux_2['desc_mat'] = material_solicitud.codigo_mat.desc
+                aux_2['cantidad_solicitada'] = material_solicitud.cantidad
+                aux_2['cantidad_inventario'] = mi.cantidad
+                disponible = False
+                aux['materiales'].append(aux_2)
+        aux['disponible'] = disponible
+        if (disponible==True):
+            aux['tipo'] = "Disponibilidad"
+            aux['msg'] = "Existencia de todos los materiales de la solicitud en el inventario."
+        else:
+            aux['tipo'] = "Sin Disponibilidad"
+            aux['msg'] = "Hay materiales en la solicitud sin existencia en inventario."
+        return Response(aux, status=status.HTTP_200_OK)
 
 class EquipoList(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated, esAlmacenista]

@@ -380,6 +380,9 @@ class Etapa_tecnico_movimiento(models.Model):
                                   blank=True)
     codigo_mov  = models.ForeignKey(Movimiento, on_delete=models.PROTECT)
 
+    class Meta:
+        unique_together = ('codigo_mov', 'ci_tecnico', 'codigo_eta')
+
 
 # aqui se cambio equ
 class Equipo_movimiento(models.Model):

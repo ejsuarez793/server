@@ -97,6 +97,30 @@ class ProyectoDetail(APIView):
                     s_actividades = ActividadSerializer(actividades, many=True)
                     etapa['actividades'] = s_actividades.data
 
+                    etms = Etapa_tecnico_movimiento.objects.filter(codigo_eta=etapa['codigo']).order_by('codigo')
+                    solicitudes=[]
+                    for etm in etms:
+                        if (etm.codigo_mov.tipo=="Egreso"):
+                            aux = {}
+                            aux['codigo'] = etm.codigo_mov.codigo
+                            aux['nombre_t'] = etm.ci_tecnico.nombre1 + " " +etm.ci_tecnico.apellido1
+                            aux['ci_tecnico'] = etm.ci_tecnico.ci
+                            aux['f_sol'] = etm.codigo_mov.f_sol
+                            aux['letra_eta'] = etm.codigo_eta.letra
+                            aux['nombre_eta'] = etm.codigo_eta.nombre
+                            aux['autorizado'] = etm.codigo_mov.autorizado
+                            aux['completado'] = etm.codigo_mov.completado
+                            mm = Material_movimiento.objects.filter(codigo_mov=etm.codigo_mov.codigo)
+                            aux['materiales'] = []
+                            for material in mm:
+                                aux_2 = {}
+                                aux_2['codigo_mat'] = material.codigo_mat.codigo
+                                aux_2['nombre_mat'] = material.codigo_mat.nombre
+                                aux_2['desc_mat'] = material.codigo_mat.desc
+                                aux_2['cant'] = material.cantidad
+                                aux['materiales'].append(aux_2)
+                            solicitudes.append(aux)
+                    proyecto['solicitudes'] = solicitudes
             except Reporte_detalle.DoesNotExist: 
                 s_etapas.data['reporte_detalle'] = None
             proyecto['etapas'] = s_etapas.data
