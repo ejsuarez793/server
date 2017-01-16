@@ -5,7 +5,7 @@ from rest_framework.authtoken import views
 
 from app.views.viewsA import MaterialList, MaterialDetail, EquipoList, EquipoDetail,ProveedorList, ProveedorDetail, Disponibilidad
 from app.views.viewsV import ClienteList, ClienteDetail, SolicitudList, ProyectoProcesarEstatus, ProyectoCausaRechazo, ProyectoEncuesta
-from app.views.viewsC import ProyectoList, ProyectoDetail, ProyectoMaterialDesglose, ProyectoEtapa, ProyectoEtapaDetail, ActividadDetail, PresupuestoList, PresupuestoDetail, Tecnicos, ProcesarSolicitud, ServicioList ,ServicioDetail,ProyectoCoordinador
+from app.views.viewsC import ProyectoList, ProyectoDetail, ProyectoMaterialDesglose, SolicitudAprobar, ProyectoEtapa, ProyectoEtapaDetail, ActividadDetail, PresupuestoList, PresupuestoDetail, Tecnicos, ProcesarSolicitud, ServicioList ,ServicioDetail,ProyectoCoordinador
 from app.views.viewsT import ReporteInicial, ReporteDetalle, ReporteDetail, SolicitudMaterialDetail
 from app.views.viewsAll import ListUsers,ValidarTrabajador,ValidarUsuario,ValidarCliente,CurrentUser,ValidarServicio
 
@@ -35,6 +35,7 @@ urlpatterns = [
     url(r'^proyecto/(?P<pk>[\w\-]+)/presupuesto/$', PresupuestoList.as_view()),
     url(r'^proyecto/(?P<pro_pk>[\w\-]+)/presupuesto/(?P<pre_pk>[\w\-]+)/$', PresupuestoDetail.as_view()),
     url(r'^proyecto/(?P<pk>[\w\-]+)/materiales/$', ProyectoMaterialDesglose.as_view()),
+    url(r'^proyecto/(?P<pk>[\w\-]+)/solicitud/(?P<sol>[\w\-]+)/aprobar/$', SolicitudAprobar.as_view()),
     url(r'^tecnicos/$', Tecnicos.as_view()),
     url(r'^solicitud/procesar/$', ProcesarSolicitud.as_view()),
     url(r'^servicio/$', ServicioList.as_view()),
@@ -46,6 +47,7 @@ urlpatterns = [
     url(r'^proyecto/(?P<pk>[\w\-]+)/reporteInicial/$', ReporteInicial.as_view()),
     url(r'^proyecto/(?P<pk_p>[\w\-]+)/etapa/(?P<pk_e>[\w\-]+)/reporteDetalle/$', ReporteDetalle.as_view()),
     url(r'^proyecto/(?P<pk_p>[\w\-]+)/etapa/(?P<pk_e>[\w\-]+)/reporte/$', ReporteDetail.as_view()),
+
 
     url(r'^almacen/disponibilidad/(?P<sol>[\w\-]+)/$', Disponibilidad.as_view()),
     url(r'^material/$', MaterialList.as_view()),

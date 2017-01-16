@@ -1,5 +1,5 @@
 #from django.contrib.auth.models import User
-from app.models import Trabajador, Solicitud, Servicio,Proyecto, Etapa, Actividad, Reporte_detalle, Reporte, Causa_rechazo, Encuesta, Pregunta, Etapa_tecnico_movimiento, Material_movimiento, Material, Cliente,Reporte_inicial,Presupuesto, Servicio_presupuesto, Material_presupuesto
+from app.models import Trabajador, Solicitud, Servicio,Proyecto, Etapa, Actividad, Reporte_detalle, Reporte, Causa_rechazo, Encuesta, Pregunta, Movimiento, Etapa_tecnico_movimiento, Material_movimiento, Material, Cliente,Reporte_inicial,Presupuesto, Servicio_presupuesto, Material_presupuesto
 from app.serializers.serializersAll import TrabajadorSerializer
 from app.serializers.serializersV import ClienteSerializer
 from app.serializers.serializersC import ProyectoSerializer, ProyectoSerializerPG, EtapaSerializer, ActividadSerializer, ReporteDetalleSerializer, ReporteSerializer, PresupuestoSerializer, Causa_rechazoSerializer, PreguntaSerializer, EncuestaSerializer, MaterialSerializer, Servicio_presupuestoSerializer, Material_presupuestoSerializer, SolicitudSerializer, SolicitudSerializerAll, ProyectoTecnicoSerializer, ServicioSerializer, ReporteInicialSerializer
@@ -262,8 +262,18 @@ class ProyectoMaterialDesglose(APIView):
         data_desglose['presupuestos'] = data_presupuestos
         data_desglose['egresados'] = data_egresados
         data_desglose['retornados'] = data_retornados
-        print(data_desglose)
+        #print(data_desglose)
         return Response(data_desglose, status=status.HTTP_200_OK)
+
+
+class SolicitudAprobar(APIView):
+    permissions_classes = [IsAuthenticated, esCoordinador]
+
+    def post(self, request, pk, sol, format=None):
+        movimiento = Movimiento.objects.get(codigo=sol)
+        movimiento.autorizado = request.data
+        movimiento.save()
+        return Response("ok",status=status.HTTP_200_OK)
 
 
 class PresupuestoList(APIView):

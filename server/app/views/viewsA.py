@@ -90,9 +90,11 @@ class Disponibilidad(APIView):
     permissions= [IsAuthenticated]
 
     def get(self, request, sol, format=None):
-        print(sol)
+        #print(sol)
         mm = Material_movimiento.objects.filter(codigo_mov=sol)
         aux = {}
+        tipo=""
+        msg=""
         disponible = True
         aux['materiales'] = []
         for material_solicitud in mm:
@@ -106,13 +108,26 @@ class Disponibilidad(APIView):
                 aux_2['cantidad_inventario'] = mi.cantidad
                 disponible = False
                 aux['materiales'].append(aux_2)
+                tipo="Sin Disponibilidad"
+                msg="Sin existencia en inventario de algunos materiales de la solicitud."
+            else:
+                movimientos_materiales = Material_movimiento.objects.filter(codigo_mat=mi.codigo)
+                cont_cantidades = 0
+                for movimiento_material in movimientos_materiales:
+                    if (movimiento_material.codigo_mov.autorizado==True and movimiento_material.codigo_mov.completado==False):
+                        cont_cantidades = cont_cantidades + movimiento_material.cantidad
+                if ((cont_cantidades + material_solicitud.cantidad ) > mi.cantidad):
+                    tipo = "Disponibilidad Limitada"
+                    msg = "Existen materiales en el inventario pero ya estan aprobados para retiro en otra solicitud."
+                    disponible = False
+                else:
+                    tipo= "Disponibilidad"
+                    msg= "Existencia de todos los materiales de la solicitud en el inventario."
+        
         aux['disponible'] = disponible
-        if (disponible==True):
-            aux['tipo'] = "Disponibilidad"
-            aux['msg'] = "Existencia de todos los materiales de la solicitud en el inventario."
-        else:
-            aux['tipo'] = "Sin Disponibilidad"
-            aux['msg'] = "Hay materiales en la solicitud sin existencia en inventario."
+        aux['tipo'] = tipo
+        aux['msg'] = msg
+        aux['codigo_sol'] =sol
         return Response(aux, status=status.HTTP_200_OK)
 
 class EquipoList(generics.ListCreateAPIView):
