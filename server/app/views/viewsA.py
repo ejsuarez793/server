@@ -137,7 +137,7 @@ class MovimientoEgreso(APIView):
 
     def get(self, request, codigo_sol, format=None):
         try:
-            #movimiento = Movimiento.objects.get(codigo=codigo_sol)
+            Movimiento.objects.get(codigo=codigo_sol)
             aux = {}
             etm = Etapa_tecnico_movimiento.objects.get(codigo_mov=codigo_sol)
             mm = Material_movimiento.objects.filter(codigo_mov=codigo_sol)
@@ -164,6 +164,8 @@ class MovimientoEgreso(APIView):
                 aux['materiales'].append(aux_2)
 
             return Response(aux,status=status.HTTP_200_OK)
+        except Movimiento.DoesNotExist:
+            return Response("No existe una solicitud de egreso con ese codigo: "+codigo_sol, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 
@@ -180,7 +182,7 @@ class MovimientoEgreso(APIView):
                         print(mat.cantidad)
                     movimiento.completado = True
                     movimiento.fecha = request.data['fecha']
-                    movimiento.ci_almacenista = Trabajador.objects.get(ci=request.data['ci_almacenista'])
+                    movimiento.ci_almace = Trabajador.objects.get(ci=request.data['ci_almacenista'])
                     movimiento.tipo = request.data['tipo']
                     movimiento.save()
                     data = {}
@@ -188,7 +190,7 @@ class MovimientoEgreso(APIView):
                     data['msg'] = "Egreso procesado exitosamente."
                     return Response(data,status=status.HTTP_200_OK)
                 else:
-                    return Response("El movimiento no ha sido autorizado o ya fue procesado.",status=status.HTTP_400_BAD_REQUEST)
+                    return Response("El movimiento no ha sido autorizado o ya fue completado.",status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 
@@ -198,8 +200,71 @@ class MovimientoIngreso(APIView):
 
     def get(self, request, rif_prove, format=None):
         try:
-            print(rif_prove)
-            return Response("ok",status=status.HTTP_200_OK)
+            proveedor = Proveedor.objects.get(rif=rif_prove)
+            data = {}
+            data['rif_prove'] = proveedor.rif
+            data['nombre_prove'] = proveedor.nombre
+            data['materiales'] = []
+            materiales = Material.objects.all()
+            for material in materiales:
+                aux = {}
+                aux['codigo'] = material.codigo
+                aux['nombre'] = material.nombre
+                aux['desc']  = material.desc
+                aux['serial']  = material.serial
+                aux['cantidad'] = material.cantidad
+                data['materiales'].append(aux)
+
+            return Response(data,status=status.HTTP_200_OK)
+        except Proveedor.DoesNotExist:
+            return Response("No existe un proveedor con ese rif: "+rif_prove, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
+
+
+    def post(self, request, rif_prove, format=None):
+        try:
+            with transaction.atomic():
+
+                #creamos el movimiento
+                movimiento = Movimiento.objects.create()
+                movimiento.fecha = request.data['fecha']
+                movimiento.completado = request.data['completado']
+                movimiento.codigo_ne = request.data['codigo_ne']
+                movimiento.codigo_oc = request.data['codigo_oc']
+                movimiento.ci_almace = Trabajador.objects.get(ci=request.data['ci_almace'])
+                movimiento.persona_t = request.data['persona_t']
+                movimiento.persona_e = request.data['persona_e']
+                movimiento.tipo = request.data['tipo']
+                movimiento.save()
+
+                #asociamos los materiales al movimiento y sumamos las cantidades ingresadas al inventario
+                for material in request.data['materiales']:
+                    mat = Material.objects.get(codigo=material['codigo'])
+                    Material_movimiento.objects.create(cantidad=material['cantidad'], 
+                        codigo_mov=movimiento, 
+                        codigo_mat=mat)
+
+                    mat.cantidad += material['cantidad']
+                    mat.save()
+
+                #ahora asociamos los materiales al codigo del proveedor, si es que no lo tienen ya asociado
+                proveedor = Proveedor.objects.get(rif=rif_prove)
+                mps = Material_proveedor.objects.filter(codigo_prove=rif_prove)
+                flag = False
+                for material in request.data['materiales']:
+                    flag = False
+                    for material_proveedor in mps:
+                        if(material_proveedor.codigo_mat.codigo == material['codigo']):
+                            flag=True
+                    if (flag==False):
+                        material = Material.objects.get(codigo=material['codigo'])
+                        Material_proveedor.objects.create(codigo_mat=material,codigo_prove=proveedor)
+                
+                data = {}
+                data['data'] = None
+                data['msg'] = "Ingreso procesado exitosamente."
+                return Response(data,status=status.HTTP_200_OK)
         except Exception as e:
             return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 
@@ -237,6 +302,16 @@ class MovimientoRetorno(APIView):
                             data['materiales'].append(aux)
                         #aux['codigo_eta'] = etapa.codigo
                         #aux['nombre_eta'] = etapa.nombre
+                for etm in etms:
+                    if (etm.codigo_mov.completado==True and etm.codigo_mov.tipo == "Retorno"):
+                        mm = Material_movimiento.objects.filter(codigo_mov=etm.codigo_mov.codigo)
+                        for material in mm:
+                            for mat_egresado in data['materiales']:
+                                if (mat_egresado['codigo'] == material.codigo_mat.codigo):
+                                    mat_egresado['cantidad'] -= material.cantidad
+                                    if (mat_egresado['cantidad']==0):
+                                        data['materiales'].remove(mat_egresado)
+
             tecnicos = Proyecto_tecnico.objects.filter(codigo_pro=codigo_pro)
             for tecnico in tecnicos:
                 aux={}
@@ -255,12 +330,35 @@ class MovimientoRetorno(APIView):
             with transaction.atomic():
                 if not request.data['materiales']:
                     return Response("No se ha incluido ningun material en el retorno, favor seleccionar alguno(s).", status=status.HTTP_400_BAD_REQUEST)
-                print(request.data)
-                #movimiento = bar = BarModel.objects.create()
-                #movimiento.
-                return Response("ok",status=status.HTTP_200_OK)
+                #print(request.data)
+                movimiento = Movimiento.objects.create()
+                movimiento.ci_almace = Trabajador.objects.get(ci=request.data['ci_almace'])
+                movimiento.fecha = request.data['fecha'];
+                movimiento.tipo = request.data['tipo']
+                movimiento.completado = True
+                movimiento.save()
+
+                for material in request.data['materiales']:
+                    Material_movimiento.objects.create(cantidad=material['cantidad'], 
+                        codigo_mov=movimiento, 
+                        codigo_mat=Material.objects.get(codigo=material['codigo']))
+                    #mm.save()
+
+
+                codigo_eta = Etapa.objects.get(codigo=request.data['codigo_eta'])
+                ci_tecnico = Trabajador.objects.get(ci=request.data['ci_tecnico'])
+
+                Etapa_tecnico_movimiento.objects.create(ci_tecnico=ci_tecnico, codigo_eta=codigo_eta, codigo_mov=movimiento)
+                #etm.save()
+                #print(movimiento.codigo)
+
+                data = {}
+                data['data'] = None
+                data['msg'] = "Retorno procesado exitosamente."
+                return Response(data,status=status.HTTP_200_OK)
         except Exception as e:
             return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
+
 
 class EquipoList(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated, esAlmacenista]
