@@ -3,7 +3,7 @@ from django.conf.urls import url
 from rest_framework.authtoken import views
 
 
-from app.views.viewsA import MaterialList, MaterialDetail, EquipoList, EquipoDetail,ProveedorList, ProveedorDetail, Disponibilidad
+from app.views.viewsA import MaterialList, MaterialDetail, EquipoList, EquipoDetail,ProveedorList, ProveedorDetail, Disponibilidad, MovimientoIngreso, MovimientoEgreso, MovimientoRetorno
 from app.views.viewsV import ClienteList, ClienteDetail, SolicitudList, ProyectoProcesarEstatus, ProyectoCausaRechazo, ProyectoEncuesta
 from app.views.viewsC import ProyectoList, ProyectoDetail, ProyectoMaterialDesglose, SolicitudAprobar, ProyectoEtapa, ProyectoEtapaDetail, ActividadDetail, PresupuestoList, PresupuestoDetail, Tecnicos, ProcesarSolicitud, ServicioList ,ServicioDetail,ProyectoCoordinador
 from app.views.viewsT import ReporteInicial, ReporteDetalle, ReporteDetail, SolicitudMaterialDetail
@@ -50,6 +50,9 @@ urlpatterns = [
 
 
     url(r'^almacen/disponibilidad/(?P<sol>[\w\-]+)/$', Disponibilidad.as_view()),
+    url(r'^almacen/movimiento/ingreso/(?P<rif_prove>[\w\-]+)/$', MovimientoIngreso.as_view()),
+    url(r'^almacen/movimiento/egreso/(?P<codigo_sol>[\w\-]+)/$', MovimientoEgreso.as_view()),
+    url(r'^almacen/movimiento/retorno/(?P<codigo_pro>[\w\-]+)/$', MovimientoRetorno.as_view()),
     url(r'^material/$', MaterialList.as_view()),
     url(r'^material/(?P<pk>[\w\-]+)/$', MaterialDetail.as_view()),
     url(r'^equipo/$', EquipoList.as_view()),

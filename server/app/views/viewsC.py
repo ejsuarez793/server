@@ -206,7 +206,7 @@ class ActividadDetail(APIView):
 
 
 class ProyectoMaterialDesglose(APIView):
-    permissions_classes = [IsAuthenticated, esCoordinador]
+    permissions_classes = [IsAuthenticated] ##aqui falta poner esCoordinadoroALmacenista o dejarlo asi
 
     def get(self, request, pk, format=None):
         data_desglose = {}
@@ -240,7 +240,7 @@ class ProyectoMaterialDesglose(APIView):
             etms = Etapa_tecnico_movimiento.objects.filter(codigo_eta=etapa.codigo)
             for etm in etms:
                 if (etm.codigo_mov.completado==True):
-                    mm = Material_movimiento.object.get(codigo_mov=etm.codigo_mov.codigo)
+                    mm = Material_movimiento.objects.get(codigo_mov=etm.codigo_mov.codigo)
                     aux = {}
                     aux['codigo_mov'] = etm.codigo_mov.codigo
                     aux['tipo_mov'] = etm.codigo_mov.tipo

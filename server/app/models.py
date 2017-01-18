@@ -360,7 +360,8 @@ class Movimiento(models.Model):
     codigo_oc = models.CharField(max_length=20, blank=True, null=True)
     persona_t = models.CharField(max_length=60, blank=True, null=True)
     persona_e = models.CharField(max_length=60, blank=True, null=True)
-    proveedor = models.CharField(max_length=50, blank=True, null=True)
+    rif_prove = models.ForeignKey(Proveedor, on_delete=models.PROTECT,
+                                  blank=True, null=True)
 
 
 class Material_movimiento(models.Model):
