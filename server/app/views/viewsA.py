@@ -225,7 +225,8 @@ class MovimientoIngreso(APIView):
     def post(self, request, rif_prove, format=None):
         try:
             with transaction.atomic():
-
+                if not request.data['materiales']:
+                    return Response("No se ha incluido ningun material en el ingreso, favor seleccionar alguno(s).", status=status.HTTP_400_BAD_REQUEST)
                 #creamos el movimiento
                 movimiento = Movimiento.objects.create()
                 movimiento.fecha = request.data['fecha']
@@ -236,6 +237,7 @@ class MovimientoIngreso(APIView):
                 movimiento.persona_t = request.data['persona_t']
                 movimiento.persona_e = request.data['persona_e']
                 movimiento.tipo = request.data['tipo']
+                movimiento.rif_prove = Proveedor.objects.get(rif=rif_prove)
                 movimiento.save()
 
                 #asociamos los materiales al movimiento y sumamos las cantidades ingresadas al inventario
@@ -356,6 +358,69 @@ class MovimientoRetorno(APIView):
                 data['data'] = None
                 data['msg'] = "Retorno procesado exitosamente."
                 return Response(data,status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
+
+
+class ConsultaRango(APIView):
+    def get(self, request, desde, hasta, format=None):
+        try:
+            print(desde)
+            print(hasta)
+            movimientos = Movimiento.objects.filter(fecha__range=(desde, hasta))
+            movs = {}
+            movs['movimientos'] = []
+            for movimiento in movimientos:
+                if (movimiento.completado==True):
+                    aux = {}
+                    aux['codigo'] = movimiento.codigo
+                    aux['fecha'] = movimiento.fecha
+                    aux['tipo'] = movimiento.tipo
+                    #almacenista = Trabajador.objects.get(ci=movimiento.
+                    aux['ci_almace'] = movimiento.ci_almace.ci
+                    aux['nombre_almace'] = movimiento.ci_almace.nombre1 +" "+ movimiento.ci_almace.nombre2 +" "+movimiento.ci_almace.apellido1 +" "+movimiento.ci_almace.apellido2
+                    aux['codigo_ne'] = movimiento.codigo_ne
+                    aux['codigo_oc'] = movimiento.codigo_oc
+                    aux['persona_t'] = movimiento.persona_t
+                    aux['persona_e'] = movimiento.persona_e
+                    aux['materiales'] = []
+                    mm = Material_movimiento.objects.filter(codigo_mov=movimiento)
+                    for material in mm:
+                        aux_2 = {}
+                        aux_2['codigo'] = material.codigo_mat.codigo
+                        aux_2['nombre'] = material.codigo_mat.nombre
+                        aux_2['desc'] = material.codigo_mat.desc
+                        aux_2['serial'] = material.codigo_mat.serial
+                        aux_2['cantidad'] = material.cantidad
+                        aux['materiales'].append(aux_2)
+
+                    if (movimiento.tipo=="Egreso" or movimiento.tipo=="Retorno"):
+                        etm = Etapa_tecnico_movimiento.objects.get(codigo_mov=movimiento)
+                        aux['codigo_pro'] = etm.codigo_eta.codigo_pro.codigo
+                        aux['nombre_pro'] = etm.codigo_eta.codigo_pro.nombre
+                        aux['letra_eta'] = etm.codigo_eta.letra
+                        aux['nombre_eta'] = etm.codigo_eta.nombre
+                        aux['ci_tecnico'] = etm.ci_tecnico.ci
+                        aux['nombre_tec'] = etm.ci_tecnico.nombre1 +" "+ etm.ci_tecnico.nombre2 +" "+etm.ci_tecnico.apellido1 +" "+etm.ci_tecnico.apellido2
+                        aux['rif_prove'] = ""
+                        aux['nombre_prove'] = ""
+                    else:
+
+                        aux['codigo_pro'] = ""
+                        aux['nombre_pro'] = ""
+                        aux['letra_eta'] = ""
+                        aux['ci_tecnico'] = ""
+                        aux['nombre_tec'] =""
+                        aux['rif_prove'] = movimiento.rif_prove.rif
+                        aux['nombre_prove'] = movimiento.rif_prove.nombre
+                    aux['mostrar'] = True
+                    movs['movimientos'].append(aux)
+
+                    #print(movimiento.codigo)
+            data = {}
+            data['data'] = movs
+            data['msg'] = "Consulta existosa."
+            return Response(data,status=status.HTTP_200_OK)
         except Exception as e:
             return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 
