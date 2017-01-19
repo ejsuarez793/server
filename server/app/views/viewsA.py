@@ -54,7 +54,10 @@ class MaterialList(APIView):
                             mps.save()
                 else:
                     return Response(material.errors, status=status.HTTP_400_BAD_REQUEST)
-                return Response(material.validated_data, status.HTTP_201_CREATED)
+                data = {}
+                data['data'] = material.validated_data
+                data['msg'] = "Material creado exitosamente."
+                return Response(data, status.HTTP_201_CREATED)
         except:
             return Response(mps.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -430,6 +433,28 @@ class ConsultaRango(APIView):
             return Response(data,status=status.HTTP_200_OK)
         except Exception as e:
             return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
+
+
+class ValidarMaterial(APIView):
+    def get(self, request, format=None):
+        codigo = self.request.query_params.get('codigo')
+        try:
+            Material.objects.get(codigo=codigo) # retrieve the user using username
+        except Material.DoesNotExist: # si es usuario no existe es un username valido
+            return Response("true")
+        else:
+            return Response("Material ya existe.") 
+
+
+class ValidarProveedor(APIView):
+    def get(self, request, format=None):
+        rif = self.request.query_params.get('rif')
+        try:
+            Proveedor.objects.get(rif=rif) # retrieve the user using username
+        except Proveedor.DoesNotExist: # si es usuario no existe es un username valido
+            return Response("true")
+        else:
+            return Response("Proveedor ya existe.") 
 
 
 class EquipoList(generics.ListCreateAPIView):
