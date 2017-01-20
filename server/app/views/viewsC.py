@@ -122,7 +122,7 @@ class ProyectoDetail(APIView):
                             solicitudes.append(aux)
                     proyecto['solicitudes'] = solicitudes
             except Reporte_detalle.DoesNotExist: 
-                s_etapas.data['reporte_detalle'] = None
+                etapa['reporte_detalle'] = None
             proyecto['etapas'] = s_etapas.data
         except Etapa.DoesNotExist:
             proyecto['etapas'] = None
@@ -273,7 +273,10 @@ class SolicitudAprobar(APIView):
         movimiento = Movimiento.objects.get(codigo=sol)
         movimiento.autorizado = request.data
         movimiento.save()
-        return Response("ok",status=status.HTTP_200_OK)
+        data = {}
+        data['data'] = None
+        data['msg'] = "Solicitud de material aprobada exitosamente."
+        return Response(data,status=status.HTTP_200_OK)
 
 
 class PresupuestoList(APIView):
@@ -300,7 +303,11 @@ class PresupuestoList(APIView):
                         s_material = Material_presupuestoSerializer(data=material)
                         if (s_material.is_valid(raise_exception=True)):
                             s_material.save()
-                return Response(request.data, status=status.HTTP_201_CREATED)
+
+                data = {}
+                data['data'] = request.data
+                data['msg'] = "Presupuesto solicitado exitosamente."
+                return Response(data, status=status.HTTP_201_CREATED)
         except Exception as e:
             return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 
@@ -331,7 +338,15 @@ class PresupuestoDetail(APIView):
                             s_material = Material_presupuestoSerializer(data=material)
                             if (s_material.is_valid(raise_exception=True)):
                                 s_material.save()
-                return Response("Editado", status=status.HTTP_200_OK)
+                    data = {}
+                    data['data'] = request.data
+                    data['msg'] = "Presupuesto editado exitosamente."
+                else:
+                    data = {}
+                    data['data'] = request.data
+                    data['msg'] = "Presupuesto ya aprobado no se puede editar."
+                    return Response(data, status=status.HTTP_400_BAD_REQUEST)
+                return Response(data, status=status.HTTP_200_OK)
         except Exception as e:
             return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 

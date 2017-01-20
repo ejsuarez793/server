@@ -85,7 +85,7 @@ class MaterialDetail(APIView):
                         return Response(mps.errors, status=status.HTTP_400_BAD_REQUEST)
             else:
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-            return Response({"msg": "Material Actualizado Satisfactoria mente"}, status=status.HTTP_200_OK)
+            return Response({"msg": "Material Actualizado exitosamente."}, status=status.HTTP_200_OK)
 
 
 class Disponibilidad(APIView):
