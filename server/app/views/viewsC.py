@@ -1,5 +1,5 @@
 #from django.contrib.auth.models import User
-from app.models import Trabajador, Solicitud, Servicio,Proyecto, Etapa, Actividad, Reporte_detalle, Reporte, Causa_rechazo, Encuesta, Pregunta, Movimiento, Etapa_tecnico_movimiento, Material_movimiento, Material, Cliente,Reporte_inicial,Presupuesto, Servicio_presupuesto, Material_presupuesto
+from app.models import Trabajador, Solicitud, Servicio,Proyecto, Etapa, Actividad, Reporte_detalle, Reporte, Causa_rechazo, Encuesta, Pregunta, Movimiento, Etapa_tecnico_movimiento, Material_movimiento, Material, Cliente,Reporte_inicial,Presupuesto, Servicio_presupuesto, Material_presupuesto, Proyecto_tecnico
 from app.serializers.serializersAll import TrabajadorSerializer
 from app.serializers.serializersV import ClienteSerializer
 from app.serializers.serializersC import ProyectoSerializer, ProyectoSerializerPG, EtapaSerializer, ActividadSerializer, ReporteDetalleSerializer, ReporteSerializer, PresupuestoSerializer, Causa_rechazoSerializer, PreguntaSerializer, EncuestaSerializer, MaterialSerializer, Servicio_presupuestoSerializer, Material_presupuestoSerializer, SolicitudSerializer, SolicitudSerializerAll, ProyectoTecnicoSerializer, ServicioSerializer, ReporteInicialSerializer
@@ -72,6 +72,15 @@ class ProyectoDetail(APIView):
         proyecto['cliente'] = s_cliente.data
         proyecto['presupuestos'] = s_presupuestos.data
 
+        tecnicos = Proyecto_tecnico.objects.filter(codigo_pro=pk)
+        proyecto['tecnicos'] = []
+        for tecnico in tecnicos:
+            aux= {}
+            aux['ci'] = tecnico.ci_tecnico.ci
+            aux['nombre'] = tecnico.ci_tecnico.nombre1 + " " + tecnico.ci_tecnico.nombre2 + " " + tecnico.ci_tecnico.apellido1 + " " + tecnico.ci_tecnico.apellido2            
+            aux['tlf'] = tecnico.ci_tecnico.tlf
+            aux['correo'] = tecnico.ci_tecnico.correo
+            proyecto['tecnicos'].append(aux)
         try:
             causa_rechazo = Causa_rechazo.objects.get(codigo_pro=s_proyecto.data['codigo'])
             s_causa_rechazo = Causa_rechazoSerializer(causa_rechazo)
@@ -375,9 +384,60 @@ class Tecnicos(APIView):
         """
         Return a list of all users.
         """
-        tecnicos = Trabajador.objects.get(cargo='t')
-        serializer = TrabajadorSerializer(tecnicos)
+        tecnicos = Trabajador.objects.filter(cargo='t')
+        serializer = TrabajadorSerializer(tecnicos, many=True)
+        for tecnico in serializer.data:
+            tecnico['nombre'] = tecnico['nombre1'] +" "+tecnico['nombre2'] +" "+tecnico['apellido1'] +" "+tecnico['apellido2']
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class ProyectoTecnicos(APIView):
+    permission_classes = [IsAuthenticated, esCoordinador]
+
+
+    def get(self, request, pk, format=None):
+        aux={}
+        aux['tecnicos'] = []
+        ta = Proyecto_tecnico.objects.filter(codigo_pro=pk)
+        tt = Trabajador.objects.filter(cargo='t')
+
+        for tecnico in tt:
+            aux_2= {}
+            aux_2['ci'] = tecnico.ci
+            aux_2['nombre'] = tecnico.nombre1 + " " + tecnico.nombre2 + " " + tecnico.apellido1 + " " + tecnico.apellido2            
+            aux_2['tlf'] = tecnico.tlf
+            aux_2['correo'] = tecnico.correo
+            aux['tecnicos'].append(aux_2)
+
+        for tecnico in aux['tecnicos']:
+            flag = False
+            for tecnicos_asociado in ta:
+                if (tecnicos_asociado.ci_tecnico.ci == tecnico['ci']):
+                    flag = True
+            
+            tecnico['mostrar_asociado'] = flag
+
+        return Response(aux['tecnicos'], status=status.HTTP_200_OK)
+
+
+    def post(self, request, pk, format=None):
+        try:
+            with transaction.atomic():
+                print(request.data)
+                proyecto = Proyecto.objects.get(codigo=pk)
+                if (proyecto.estatus!="Ejecucion" and proyecto.estatus!="Culminado" and proyecto.estatus!="Rechazado"):
+                    Proyecto_tecnico.objects.filter(codigo_pro=pk).delete()
+                    for tecnico in request.data:
+                        t = Trabajador.objects.get(ci=tecnico['ci'])
+                        Proyecto_tecnico.objects.create(ci_tecnico=t, codigo_pro=proyecto)
+                    data = {}
+                    data['data'] = request.data
+                    data['msg'] = "Tecnicos guardados exitosamente."
+                    return Response(data, status=status.HTTP_200_OK)
+                else:
+                    return Response("No se pueden guardar los tecnicos debido al estado del proyecto.", status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 
 
 class ProcesarSolicitud(APIView):
