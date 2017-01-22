@@ -249,21 +249,23 @@ class ProyectoMaterialDesglose(APIView):
             etms = Etapa_tecnico_movimiento.objects.filter(codigo_eta=etapa.codigo)
             for etm in etms:
                 if (etm.codigo_mov.completado==True):
-                    mm = Material_movimiento.objects.get(codigo_mov=etm.codigo_mov.codigo)
-                    aux = {}
-                    aux['codigo_mov'] = etm.codigo_mov.codigo
-                    aux['tipo_mov'] = etm.codigo_mov.tipo
-                    aux['codigo_mat'] = mm.codigo_mat.codigo
-                    aux['nombre'] = mm.codigo_mat.nombre
-                    aux['desc'] = mm.codigo_mat.desc
-                    aux['serial'] = mm.codigo_mat.serial
-                    aux['cant'] = mm.cantidad
-                    aux['codigo_eta'] = etapa.codigo
-                    aux['nombre_eta'] = etapa.nombre
-                    if (etm.codigo_mov.tipo == "Egreso"):
-                        data_egresados.append(aux)
-                    elif(etm.codigo_mov.tipo == "Retorno"):
-                        data_retornados.append(aux)
+                    mm = Material_movimiento.objects.filter(codigo_mov=etm.codigo_mov.codigo)
+                    for material in mm:
+                        aux = {}
+                        aux['codigo_mov'] = etm.codigo_mov.codigo
+                        aux['tipo_mov'] = etm.codigo_mov.tipo
+                        aux['codigo_mat'] = material.codigo_mat.codigo
+                        aux['nombre'] = material.codigo_mat.nombre
+                        aux['desc'] = material.codigo_mat.desc
+                        aux['serial'] = material.codigo_mat.serial
+                        aux['cant'] = material.cantidad
+                        aux['codigo_eta'] = etapa.codigo
+                        aux['nombre_eta'] = etapa.nombre
+                        aux['letra_eta'] = etapa.letra
+                        if (etm.codigo_mov.tipo == "Egreso"):
+                            data_egresados.append(aux)
+                        elif(etm.codigo_mov.tipo == "Retorno"):
+                            data_retornados.append(aux)
         """print("materiales egresados")
         print(data_egresados)
         print("materiales retornados")
