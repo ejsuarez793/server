@@ -36,10 +36,44 @@ class ClienteDetail(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = ClienteSerializer
 
 
-class SolicitudList(generics.ListCreateAPIView):
+"""class SolicitudList(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
     queryset = Solicitud.objects.all()
-    serializer_class = SolicitudSerializer
+    serializer_class = SolicitudSerializer"""
+
+class SolicitudList(APIView):
+    permission_classes = [IsAuthenticated, esVendedor]
+
+    def get(self, request, format=None):
+        try:
+            solicitudes = Solicitud.objects.all()
+            data = []
+            for solicitud in solicitudes:
+                aux={}
+                aux['codigo'] = solicitud.codigo
+                aux['rif_c'] = solicitud.rif_c.rif
+                aux['disp'] = solicitud.disp
+                aux['referido_p'] = solicitud.referido_p
+                aux['desc'] = solicitud.desc
+                aux['ubicacion'] = solicitud.ubicacion
+                aux['estatus'] = solicitud.estatus
+                aux['nombre_cc'] = solicitud.nombre_cc
+                aux['tlf_cc'] = solicitud.tlf_cc
+                aux['correo_cc'] = solicitud.correo_cc
+                aux['cargo_cc'] = solicitud.cargo_cc
+                aux['f_sol'] = solicitud.f_sol
+                aux['f_vis'] = solicitud.f_vis
+                aux['nombre_cliente'] = solicitud.rif_c.nombre
+                aux['tlf1'] = solicitud.rif_c.tlf1
+                aux['tlf2'] = solicitud.rif_c.tlf2
+                aux['fax'] = solicitud.rif_c.fax
+                data.append(aux)
+            return Response(data,status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
+
+
+
 
 
 class ProyectoProcesarEstatus(APIView):

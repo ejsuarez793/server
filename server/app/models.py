@@ -57,9 +57,9 @@ class Trabajador(models.Model):
 #  aqui hay mod, estatus varchar(1) y nombre_cc dos C
 class Solicitud(models.Model):
     est = (
-        ('n', 'Nueva'),
-        ('p', 'Procesada'),
-        ('a', 'Atendida'),
+        ('Nueva', 'Nueva'),
+        ('Procesada', 'Procesada'),
+        ('Atendida', 'Atendida'),
     )
     codigo = models.AutoField(primary_key=True)
     rif_c = models.ForeignKey(Cliente, on_delete=models.PROTECT)
@@ -67,7 +67,7 @@ class Solicitud(models.Model):
     referido_p = models.CharField(max_length=50, blank=True)
     desc = models.CharField(max_length=300)
     ubicacion = models.CharField(max_length=150)
-    estatus = models.CharField(max_length=1, choices=est, default='n')
+    estatus = models.CharField(max_length=10, choices=est, default='Nueva')
     nombre_cc = models.CharField(max_length=75)
     tlf_cc = models.CharField(max_length=15)
     correo_cc = models.EmailField()

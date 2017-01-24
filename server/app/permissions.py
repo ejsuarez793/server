@@ -51,13 +51,13 @@ class esTecnicoOsoloLectura(permissions.BasePermission):
 
 
 class esVendedor(permissions.BasePermission):
-    message = 'El usuario no es un Vendedor.'
+    message = 'El usuario no es un Vendedor,o esta ejecutando un metodo no permitido.'
 
     def has_permission(self, request, view):
         try:
             usuario = User.objects.get(username=request.user)
             trabajador = Trabajador.objects.get(usuario_id=usuario.id)
-            if (trabajador.cargo == "v"):
+            if (trabajador.cargo == "v" or request.method in SAFE_METHODS):
                 return True
             else:
                 return False

@@ -418,6 +418,13 @@ class Tecnicos(APIView):
         serializer = TrabajadorSerializer(tecnicos, many=True)
         for tecnico in serializer.data:
             tecnico['nombre'] = tecnico['nombre1'] +" "+tecnico['nombre2'] +" "+tecnico['apellido1'] +" "+tecnico['apellido2']
+            proyectos = Proyecto_tecnico.objects.filter(ci_tecnico=tecnico['ci'])
+            tecnico['proyectos'] = []
+            for proyecto in proyectos:
+                aux = {}
+                aux['codigo_pro'] = proyecto.codigo_pro.codigo
+                aux['nombre_pro'] = proyecto.codigo_pro.nombre
+                tecnico['proyectos'].append(aux)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
