@@ -28,7 +28,7 @@ class ProyectoSerializer(serializers.ModelSerializer):
 class ProyectoSerializerPG(serializers.ModelSerializer):
     class Meta:
         model = Proyecto
-        fields = ('nombre', 'desc', 'f_est', 'ubicacion')
+        fields = ('nombre', 'desc', 'f_est', 'ubicacion','estatus','f_ini','f_fin')
 
 
 class EtapaSerializer(serializers.ModelSerializer):

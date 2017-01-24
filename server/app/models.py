@@ -168,7 +168,7 @@ class Etapa(models.Model):
     est = (
         ('Pendiente', 'Pendiente'),
         ('Ejecucion', 'Ejecucion'),
-        ('Problemas', 'Problemas'),
+        #('Problemas', 'Problemas'),
         ('Culminado', 'Culminado'),
     )
     codigo = models.AutoField(primary_key=True)

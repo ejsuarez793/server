@@ -90,7 +90,7 @@ class ProyectoDetail(APIView):
 
 
         try:
-            etapas = Etapa.objects.filter(codigo_pro=s_proyecto.data['codigo'])
+            etapas = Etapa.objects.filter(codigo_pro=s_proyecto.data['codigo']).order_by('codigo')
             s_etapas = EtapaSerializer(etapas, many=True)
             try:
                 for etapa in s_etapas.data: 
@@ -155,10 +155,24 @@ class ProyectoDetail(APIView):
             proyecto = Proyecto.objects.get(codigo=pk)
             s_proyecto = ProyectoSerializerPG(proyecto, data=request.data)
             if (s_proyecto.is_valid(raise_exception=True)):
-                s_proyecto.save()
                 data = {}
+                etapas = Etapa.objects.filter(codigo_pro=pk)
+                if(s_proyecto.initial_data['accion']=="Iniciar"):
+                    data['msg'] = "Proyecto iniciado exitosamente."
+                    pts = Proyecto_tecnico.objects.filter(codigo_pro=pk)
+                    if not pts:
+                        return Response("Debes asignar al menos 1 tecnico al proyecto.", status=status.HTTP_400_BAD_REQUEST)
+                    if not etapas:
+                        return Response("Debes definir al menos 1 etapa en el proyecto.", status=status.HTTP_400_BAD_REQUEST)
+                elif(s_proyecto.initial_data['accion']=="Culminar"):
+                    data['msg'] = "Proyecto culminado exitosamente."
+                    for etapa in etapas:
+                        if (etapa.estatus!="Culminado"):
+                            return Response("Hay etapas que no han sido culminadas.", status=status.HTTP_400_BAD_REQUEST)
+                else:
+                    data['msg'] = "Proyecto editado exitosamente!"
+                s_proyecto.save()
                 data['data'] = s_proyecto.data
-                data['msg'] = "Proyecto editado exitosamente!"
                 return Response(data, status=status.HTTP_200_OK)
         except Exception as e:
             return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
@@ -188,10 +202,24 @@ class ProyectoEtapaDetail(APIView):
             etapa = Etapa.objects.get(codigo=pk_e)
             s_etapa = EtapaSerializer(etapa,data=request.data)
             if(s_etapa.is_valid(raise_exception=True)):
-                s_etapa.save()
                 data = {}
+                actividades = Actividad.objects.filter(codigo_eta=pk_e)
+                if (s_etapa.initial_data['accion']=="Iniciar"):
+                    etapa = Etapa.objects.get(codigo=pk_e)
+                    if (etapa.codigo_rd == None):
+                        return Response("El reporte de detalle debe ser completado.", status=status.HTTP_400_BAD_REQUEST)
+                    if not actividades:
+                        return Response("Debes definir al menos 1 actividad.", status=status.HTTP_400_BAD_REQUEST)
+                    data['msg'] = "Etapa iniciada exitosamente!"
+                elif(s_etapa.initial_data['accion']=="Culminar"):
+                    for actividad in actividades:
+                        if (actividad.completada==False):
+                            return Response("Hay actividades que no han sido completadas.", status=status.HTTP_400_BAD_REQUEST)
+                    data['msg'] = "Etapa culminada exitosamente!"
+                else:
+                    data['msg'] = "Etapa editada exitosamente!"
+                s_etapa.save()
                 data['data'] = s_etapa.data
-                data['msg'] = "Etapa editada exitosamente!"
                 return Response(data, status=status.HTTP_200_OK)
         except Exception as e:
             return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
