@@ -20,9 +20,9 @@ def create_auth_token(sender, instance=None, created=False, **kwargs):
 #  aqui hay mod dir dire
 class Cliente(models.Model):
     opt = (
-        ('o', 'Ordinario'),
-        ('e', 'Especial'),
-        ('f', 'Formales'),
+        ('Ordinario', 'Ordinario'),
+        ('Especial', 'Especial'),
+        ('Formales', 'Formales'),
     )
     rif = models.CharField(primary_key=True, max_length=15)
     nombre = models.CharField(max_length=75, db_index=True)
@@ -323,9 +323,9 @@ class Material_proveedor(models.Model):
 #  x 100
 class Factura(models.Model):
     opt = (
-        ('c', 'Credito'),
-        ('d', 'Debito'),
-        ('e', 'Efectivo'),
+        ('Credito', 'Credito'),
+        ('Debito', 'Debito'),
+        ('Efectivo', 'Efectivo'),
     )
     nro_factura = models.AutoField(primary_key=True)
     codigo_pre = models.ForeignKey(Presupuesto, on_delete=models.PROTECT)
@@ -334,7 +334,7 @@ class Factura(models.Model):
     persona_cc = models.CharField(max_length=60)
     email_cc = models.CharField(max_length=60)
     cargo_cc = models.CharField(max_length=50, blank=True)
-    cond_pago = models.CharField(max_length=1, choices=opt)
+    cond_pago = models.CharField(max_length=10, choices=opt)
     pagada = models.BooleanField(default=False)
     banco_dest = models.CharField(max_length=50, blank=True)
     nro_ref = models.CharField(max_length=100, blank=True)

@@ -25,21 +25,83 @@ def viewsVendedor(arg):
     pass
 
 
-class ClienteList(generics.ListCreateAPIView):
+"""class ClienteList(generics.ListCreateAPIView):
     queryset = Cliente.objects.all()
-    serializer_class = ClienteSerializer
+    serializer_class = ClienteSerializer"""
 
 
-class ClienteDetail(generics.RetrieveUpdateDestroyAPIView):
+"""class ClienteDetail(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated]
     queryset = Cliente.objects.all()
-    serializer_class = ClienteSerializer
+    serializer_class = ClienteSerializer"""
+
 
 
 """class SolicitudList(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
     queryset = Solicitud.objects.all()
     serializer_class = SolicitudSerializer"""
+class ClienteList(APIView):
+    permission_classes = [IsAuthenticated, esVendedor]
+
+    def get(self, request, format=None):
+        try:
+            clientes = Cliente.objects.all()
+            data = []
+            for cliente in clientes:
+                aux = {}
+                aux['rif'] = cliente.rif
+                aux['nombre'] = cliente.nombre
+                aux['tlf1'] = cliente.tlf1
+                aux['tlf2'] = cliente.tlf2
+                aux['fax'] = cliente.fax
+                aux['dire'] = cliente.dire
+                aux['act_eco'] = cliente.act_eco
+                aux['cond_contrib'] = cliente.cond_contrib
+                data.append(aux)
+            return Response(data,status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
+
+    def post(self, request, format=None):
+        try:
+            s_cliente = ClienteSerializer(data=request.data)
+            if (s_cliente.is_valid(raise_exception=True)):
+                s_cliente.save()
+                data = {}
+                data['data'] = s_cliente.data
+                data['msg'] = "Cliente creado exitosamente."
+                return Response(data,status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
+
+
+class ClienteDetail(APIView):
+    permission_classes = [IsAuthenticated, esVendedor]
+
+    def get(self, request, pk, format=None):
+        try:
+            cliente = Cliente.objects.get(rif=pk)
+            s_cliente = ClienteSerializer(data=cliente)
+            if (s_cliente.is_valid(raise_exception=True)):
+                return Response(s_cliente.data,status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
+
+    def patch(self, request, pk, format=None):
+        try:
+            cliente = Cliente.objects.get(rif=pk)
+            s_cliente = ClienteSerializer(cliente, data=request.data)
+            if (s_cliente.is_valid(raise_exception=True)):
+                s_cliente.save()
+                data = {}
+                data['data'] = s_cliente.data
+                data['msg'] = "Cliente editado exitosamente"
+                return Response(data,status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
+
+
 
 class SolicitudList(APIView):
     permission_classes = [IsAuthenticated, esVendedor]
@@ -72,6 +134,18 @@ class SolicitudList(APIView):
         except Exception as e:
             return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 
+
+    def post(self, request, format=None):
+        try:
+            s_solicitud = SolicitudSerializer(data=request.data)
+            if (s_solicitud.is_valid(raise_exception=True)):
+                s_solicitud.save()
+                data = {}
+                data['data'] = s_solicitud.data
+                data['msg'] = "Solicitud creado exitosamente."
+                return Response(data,status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 
 
 

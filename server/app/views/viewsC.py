@@ -501,7 +501,10 @@ class ProcesarSolicitud(APIView):
                     print(proyecto_tecnico.errors)
             else:
                 print(proyecto.errors)
-            return Response("Solicitud Procesada", status=status.HTTP_200_OK)
+            data = {}
+            data['data'] = proyecto.data
+            data['msg'] = "Solicitud procesada exitosamente."
+            return Response(data, status=status.HTTP_200_OK)
         return Response("Solicitud No pudo ser procesada", status=status.HTTP_400_BAD_REQUEST)
 
 
