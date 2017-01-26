@@ -15,7 +15,7 @@ urlpatterns = [
     url(r'^cliente/$', ClienteList.as_view()),
     url(r'^cliente/(?P<pk>[\w\-]+)/$', ClienteDetail.as_view()),
     url(r'^api-token-auth/$', views.obtain_auth_token),
-    url(r'^users/$', ListUsers.as_view()),
+    url(r'^usuarios/$', ListUsers.as_view()),
     url(r'^users/current/$', CurrentUser.as_view()),
     url(r'^validar/usuario/$', ValidarUsuario.as_view()),
     url(r'^validar/trabajador/$', ValidarTrabajador.as_view()),

@@ -11,6 +11,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import authentication
+from django.db import transaction
 
 
 def viewsTodos(arg):
@@ -35,24 +36,31 @@ class ListUsers(APIView):
         return Response(usernames)
 
     def post(self, request, format=None):
-        serializer = UserSerializer(data=request.data['user'])
-        if serializer.is_valid():
-            user = User.objects.create_user(
-                serializer.validated_data['username'],
-                serializer.validated_data['email'],
-                serializer.validated_data['password']
-            )
-            request.data['trabajador']['usuario'] = user.pk
-            serializer1 = TrabajadorSerializer(data=request.data['trabajador'])
-            if serializer1.is_valid():
-                serializer1.save()
-                return Response(serializer1.data, status=status.HTTP_201_CREATED)
-            else:
-                instance = User.objects.get(id= user.pk)
-                instance.delete()
-                return Response(serializer1.errors, status=status.HTTP_400_BAD_REQUEST)
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            with transaction.atomic():
+                serializer = UserSerializer(data=request.data['user'])
+                if serializer.is_valid(raise_exception=True):
+                    user = User.objects.create_user(
+                        serializer.validated_data['username'],
+                        serializer.validated_data['email'],
+                        serializer.validated_data['password']
+                    )
+                    request.data['trabajador']['usuario'] = user.pk
+                    serializer1 = TrabajadorSerializer(data=request.data['trabajador'])
+                    if serializer1.is_valid(raise_exception=True):
+                        serializer1.save()
+                        data = {}
+                        data['data'] = serializer1.data
+                        data['msg'] = "Usuario registrado exitosamente."
+                        return Response(data, status=status.HTTP_201_CREATED)
+                    else:
+                        instance = User.objects.get(id= user.pk)
+                        instance.delete()
+                        return Response(serializer1.errors, status=status.HTTP_400_BAD_REQUEST)
+                else:
+                    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 
 
 
@@ -107,9 +115,15 @@ class CurrentUser(APIView):
 
     def get(self, request, format=None):
         serializer = UserSerializer(request.user)
+        
         try:
-            user = Trabajador.objects.get(usuario=serializer.data['id'])
-            serialized = TrabajadorSerializer(user)
+            if (request.user.is_superuser):
+                data = {}
+                data['cargo'] = "admin"
+                return Response(data,status=status.HTTP_200_OK)
+            else:
+                user = Trabajador.objects.get(usuario=serializer.data['id'])
+                serialized = TrabajadorSerializer(user)
+                return Response(serialized.data, status=status.HTTP_200_OK)
         except Trabajador.DoesNotExist:
             return Response("No existe el trabajador", status=status.HTTP_404_NOT_FOUND)
-        return Response(serialized.data, status=status.HTTP_200_OK)

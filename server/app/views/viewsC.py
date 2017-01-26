@@ -483,7 +483,7 @@ class ProcesarSolicitud(APIView):
     def put(self, request, format=None):
         with transaction.atomic():
             sol = Solicitud.objects.get(codigo=request.data['solicitud']['codigo'])
-            if (sol.estatus != "n"):
+            if (sol.estatus != "Nueva"):
                 return Response("Solicitud ya estaba procesada", status=status.HTTP_400_BAD_REQUEST)
             solicitud = SolicitudSerializer(sol, data=request.data['solicitud'])
             if (solicitud.is_valid()):
@@ -505,7 +505,7 @@ class ProcesarSolicitud(APIView):
             data['data'] = proyecto.data
             data['msg'] = "Solicitud procesada exitosamente."
             return Response(data, status=status.HTTP_200_OK)
-        return Response("Solicitud No pudo ser procesada", status=status.HTTP_400_BAD_REQUEST)
+        return Response("Solicitud no pudo ser procesada", status=status.HTTP_400_BAD_REQUEST)
 
 
 class ServicioList(generics.ListCreateAPIView):
@@ -534,9 +534,12 @@ class ProyectoCoordinador(APIView):
                 cliente = Cliente.objects.get(rif=proyecto['rif_c'])
                 serializerC = ClienteSerializer(cliente)
                 proyecto['nombre_c'] = serializerC.data['nombre']
-                reporte_inicial = Reporte_inicial.objects.get(codigo=proyecto['codigo_ri'])
-                serializerRI = ReporteInicialSerializer(reporte_inicial)
-                proyecto['reporte_inicial'] = serializerRI.data
+                try:
+                    reporte_inicial = Reporte_inicial.objects.get(codigo=proyecto['codigo_ri'])
+                    serializerRI = ReporteInicialSerializer(reporte_inicial)
+                    proyecto['reporte_inicial'] = serializerRI.data
+                except Reporte_inicial.DoesNotExist:
+                    proyecto['reporte_inicial'] = None
         except Cliente.DoesNotExist:
             return Response("Error relacionando proyecto con cliente", status=status.HTTP_400_BAD_REQUEST)
         except Solicitud.DoesNotExist:
