@@ -17,3 +17,6 @@ def viewsVendedor(arg):
 
 def viewsTodos(arg):
     pass
+
+def viewsAdministrador(arg):
+    pass
