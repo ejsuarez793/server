@@ -1,5 +1,5 @@
 #from django.contrib.auth.models import User
-from app.models import Trabajador, Solicitud, Servicio,Proyecto, Etapa, Actividad, Reporte_detalle, Reporte, Causa_rechazo, Encuesta, Pregunta, Movimiento, Etapa_tecnico_movimiento, Material_movimiento, Material, Cliente,Reporte_inicial,Presupuesto, Servicio_presupuesto, Material_presupuesto, Proyecto_tecnico
+from app.models import Trabajador, Solicitud, Servicio,Proyecto, Etapa, Actividad, Reporte_detalle, Reporte, Reporte_servicio, Causa_rechazo, Encuesta, Pregunta, Movimiento, Etapa_tecnico_movimiento, Material_movimiento, Material, Cliente,Reporte_inicial,Presupuesto, Servicio_presupuesto, Material_presupuesto, Proyecto_tecnico
 from app.serializers.serializersAll import TrabajadorSerializer
 from app.serializers.serializersV import ClienteSerializer
 from app.serializers.serializersC import ProyectoSerializer, ProyectoSerializerPG, EtapaSerializer, ActividadSerializer, ReporteDetalleSerializer, ReporteSerializer, PresupuestoSerializer, Causa_rechazoSerializer, PreguntaSerializer, EncuestaSerializer, MaterialSerializer, Servicio_presupuestoSerializer, Material_presupuestoSerializer, SolicitudSerializer, SolicitudSerializerAll, ProyectoTecnicoSerializer, ServicioSerializer, ReporteInicialSerializer
@@ -100,6 +100,17 @@ class ProyectoDetail(APIView):
 
                     reportes = Reporte.objects.filter(codigo_eta=etapa['codigo']).order_by('fecha')
                     s_reportes = ReporteSerializer(reportes, many=True)
+                    
+                    for reporte in s_reportes.data:
+                        rep_sev = Reporte_servicio.objects.filter(codigo_rep=reporte['codigo'])
+                        reporte['servicios'] = []
+                        for rs in rep_sev:
+                            aux={}
+                            aux['codigo']=rs.codigo_ser.codigo
+                            aux['desc']=rs.codigo_ser.desc
+                            aux['cantidad']=rs.cantidad
+                            reporte['servicios'].append(aux)
+
                     etapa['reportes'] = s_reportes.data
 
                     actividades = Actividad.objects.filter(codigo_eta=etapa['codigo'])

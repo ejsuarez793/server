@@ -35,7 +35,7 @@ class esCoordinador(permissions.BasePermission):
             return False
 
 
-class esTecnicoOsoloLectura(permissions.BasePermission):
+class esTecnico(permissions.BasePermission):
     message = 'El usuario no es un Tecnico,o esta ejecutando un metodo no permitido.'
 
     def has_permission(self, request, view):

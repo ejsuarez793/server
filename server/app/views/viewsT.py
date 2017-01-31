@@ -4,7 +4,7 @@ from rest_framework.permissions import (
     IsAdminUser,
     IsAuthenticatedOrReadOnly,
 )
-from app.permissions import esTecnicoOsoloLectura, esCoordinador
+from app.permissions import esTecnico, esCoordinador
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -19,7 +19,7 @@ def viewsTecnico(arg):
 
 
 class ReporteInicial(APIView):
-    permission_classes = [IsAuthenticated, esTecnicoOsoloLectura] #,esTecnico]
+    permission_classes = [IsAuthenticated, esTecnico] #,esTecnico]
 
     def post(self, request, pk, format=None):
         proyecto = Proyecto.objects.get(codigo=pk)
@@ -35,7 +35,7 @@ class ReporteInicial(APIView):
 
 
 class ReporteDetalle(APIView):
-    permission_classes = [IsAuthenticated, esCoordinador]
+    permission_classes = [IsAuthenticated, esTecnico]
 
     def post(self, request, pk_p, pk_e, format=None):
         try:
@@ -57,7 +57,7 @@ class ReporteDetalle(APIView):
 
 
 class ReporteDetail(APIView):
-    permission_classes = [IsAuthenticated, esCoordinador]
+    permission_classes = [IsAuthenticated, esTecnico]
 
     def post(self, request, pk_p, pk_e, format=None):
         try:
@@ -87,7 +87,7 @@ class ReporteDetail(APIView):
 
 # permite crear una solicitud de material para una etapa
 class SolicitudMaterialDetail(APIView):
-    permission_classes = [IsAuthenticated, esCoordinador]
+    permission_classes = [IsAuthenticated, esTecnico]
 
     def post(self, request, pk_p, pk_e, format=None):
         try:

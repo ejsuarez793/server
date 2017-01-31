@@ -225,13 +225,22 @@ class Reporte(models.Model):
     leido = models.BooleanField(default=False)
 
 
-class Etapa_servicio(models.Model):
+class Reporte_servicio(models.Model):
+    codigo = models.AutoField(primary_key=True)
+    codigo_ser = models.ForeignKey('Servicio', on_delete=models.PROTECT)
+    codigo_rep = models.ForeignKey(Reporte, on_delete=models.PROTECT)
+    cantidad = models.IntegerField()
+
+    class Meta:
+        unique_together = ('codigo_ser', 'codigo_rep',)
+
+"""class Etapa_servicio(models.Model):
     codigo = models.AutoField(primary_key=True)
     codigo_ser = models.ForeignKey('Servicio', on_delete=models.PROTECT)
     codigo_eta = models.ForeignKey(Etapa, on_delete=models.PROTECT)
 
     class Meta:
-        unique_together = ('codigo_ser', 'codigo_eta',)
+        unique_together = ('codigo_ser', 'codigo_eta',)"""
 
 
 #  aqui se cambio ci vendedor por null blank true
@@ -334,6 +343,7 @@ class Factura(models.Model):
     persona_cc = models.CharField(max_length=60)
     email_cc = models.CharField(max_length=60)
     cargo_cc = models.CharField(max_length=50, blank=True)
+    departamento_cc = models.CharField(max_length=50, blank=True)
     cond_pago = models.CharField(max_length=10, choices=opt)
     pagada = models.BooleanField(default=False)
     banco_dest = models.CharField(max_length=50, blank=True)
