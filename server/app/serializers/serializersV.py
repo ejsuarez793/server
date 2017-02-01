@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 # modelos a importar
-from app.models import Cliente, Solicitud, Proyecto, Presupuesto, Causa_rechazo, Encuesta, Pregunta
+from app.models import Cliente, Solicitud, Proyecto, Presupuesto, Causa_rechazo, Encuesta, Pregunta, Factura
 
 
 def VendedorSerializers(arg):
@@ -47,4 +47,10 @@ class EncuestaSerializer(serializers.ModelSerializer):
 class PreguntaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Pregunta
+        fields = '__all__'
+
+
+class FacturaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Factura
         fields = '__all__'
