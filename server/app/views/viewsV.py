@@ -233,6 +233,41 @@ class FacturaConsultar(APIView):
     def get(self, request, cod_eta, cod_pre, format=None):
         try:
             with transaction.atomic():
+                etapa = Etapa.objects.get(codigo=cod_eta)
+                if(etapa.estatus!="Culminado"):
+                    return Response("La etapa no ha culminado no se puede facturar.",status=status.HTTP_400_BAD_REQUEST)
+
+                detalle={}
+                if (cod_pre=='null'):
+                    factura = Factura.objects.get(codigo_eta=cod_eta)
+                    cod_pre = factura.codigo_pre.codigo
+                    detalle['nombre_cliente']=factura.codigo_eta.codigo_pro.codigo_s.rif_c.nombre
+                    detalle['rif_cliente']=factura.codigo_eta.codigo_pro.codigo_s.rif_c.rif
+                    detalle['tlf1_cc']=factura.codigo_eta.codigo_pro.codigo_s.rif_c.tlf1
+                    detalle['tlf2_cc']=factura.codigo_eta.codigo_pro.codigo_s.rif_c.tlf2
+                    detalle['fax_c']=factura.codigo_eta.codigo_pro.codigo_s.rif_c.dire
+                    detalle['dire_c']=factura.codigo_eta.codigo_pro.codigo_s.rif_c.dire
+                    detalle['nro_factura']=factura.nro_factura
+                    detalle['nro_control']=factura.nro_control
+                    detalle['f_emi']=factura.f_emi
+                    detalle['f_ven']=factura.f_ven
+                    detalle['nombre_v']=factura.codigo_pre.ci_vendedor.nombre1 + " " + factura.codigo_pre.ci_vendedor.nombre2
+                    detalle['cond_pago']=factura.cond_pago
+                    detalle['persona_cc']=factura.persona_cc
+                    detalle['email_cc']=factura.email_cc
+                    detalle['cargo_cc']=factura.cargo_cc
+                    detalle['departamento_cc']=factura.departamento_cc
+                    detalle['pagada']=factura.pagada
+                    detalle['banco_dest']=factura.banco_dest
+                    detalle['nro_ref']=factura.nro_ref
+                    detalle['codigo_pre']=factura.codigo_pre.codigo
+                    detalle['codigo_pro']=factura.codigo_eta.codigo_pro.codigo
+                    detalle['nombre_pro']=factura.codigo_eta.codigo_pro.nombre
+                    detalle['letra_eta']=factura.codigo_eta.letra
+                    detalle['codigo_eta']=factura.codigo_eta.codigo
+                    detalle['facturada']=factura.codigo_eta.facturada
+                    
+
                 elementos_presupuesto = []
 
                 materiales_presupuesto = Material_presupuesto.objects.filter(codigo_pre=cod_pre)
@@ -326,6 +361,7 @@ class FacturaConsultar(APIView):
                 data['total'] = total
                 data['codigo_pre'] = cod_pre
                 data['codigo_eta'] = cod_eta
+                data['detalle']=detalle
                 #data['data'] = None
                 #data['msg'] = msg
                 return Response(data, status=status.HTTP_200_OK)
@@ -339,11 +375,12 @@ class FacturaEtapa(APIView):
     def post(self, request, cod_eta, format=None):
         try:
             with transaction.atomic():
-                print(request.data)
+                etapa = Etapa.objects.get(codigo=cod_eta)
+                if (etapa.facturada==True):
+                    return Response("La etapa ya fue facturada.", status=status.HTTP_400_BAD_REQUEST)
                 s_factura = FacturaSerializer(data=request.data)
                 if(s_factura.is_valid(raise_exception=True)):
                     s_factura.save()
-                    etapa = Etapa.objects.get(codigo=cod_eta)
                     etapa.facturada = True
                     etapa.save()
                 else:
@@ -361,6 +398,8 @@ class FacturaEtapa(APIView):
         try:
             with transaction.atomic():
                 factura = Factura.objects.get(codigo_eta=cod_eta)
+                if (factura.pagada==True):
+                    return Response("La factura ya fue pagada.", status=status.HTTP_400_BAD_REQUEST)
                 factura.banco_dest = request.data['banco_dest']
                 factura.pagada = request.data['pagada']
                 factura.nro_ref = request.data['nro_ref']
