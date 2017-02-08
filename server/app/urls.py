@@ -6,7 +6,7 @@ from rest_framework.authtoken import views
 from app.views.viewsA import MaterialList, MaterialDetail, EquipoList, EquipoDetail,ProveedorList, ProveedorDetail, Disponibilidad, MovimientoIngreso, MovimientoEgreso, MovimientoRetorno, ConsultaRango, ValidarMaterial, ValidarProveedor
 from app.views.viewsV import ClienteList, ClienteDetail, SolicitudList, ProyectoProcesarEstatus, ProyectoCausaRechazo, ProyectoEncuesta, FacturaEtapa, FacturaConsultar
 from app.views.viewsC import ProyectoList, ProyectoDetail,ProyectoTecnicos, ProyectoMaterialDesglose, SolicitudAprobar, ProyectoEtapa, ProyectoEtapaDetail, ActividadDetail, PresupuestoList, PresupuestoDetail, Tecnicos, ProcesarSolicitud, ServicioList ,ServicioDetail,ProyectoCoordinador
-from app.views.viewsT import ProyectoTecnico, SolicitudTecnico, ReporteInicial, ReporteDetalle, ReporteDetail, SolicitudMaterialDetail
+from app.views.viewsT import ProyectosTecnico, ProyectoTecnico, EtapaTecnico, SolicitudTecnico, ReporteInicial, ReporteDetalle, ReporteDetail, SolicitudMaterialDetail
 from app.views.viewsAll import ListUsers,ValidarTrabajador,ValidarUsuario,ValidarCliente,CurrentUser,ValidarServicio
 from app.views.viewsAdmin import GestionUsuario, ClaveUsuario
 
@@ -69,7 +69,9 @@ urlpatterns = [
     url(r'^validar/proveedor/$', ValidarProveedor.as_view()),
 
 
-    url(r'^tecnico/proyectos/(?P<ci>[\w\-]+)/$', ProyectoTecnico.as_view()),
+    url(r'^tecnico/proyectos/(?P<ci>[\w\-]+)/$', ProyectosTecnico.as_view()),
+    url(r'^tecnico/proyecto/(?P<pk>[\w\-]+)/$', ProyectoTecnico.as_view()),
+    url(r'^tecnico/proyecto/(?P<cod_pro>[\w\-]+)/etapa/(?P<cod_eta>[\w\-]+)/$', EtapaTecnico.as_view()),
     url(r'^tecnico/solicitudes/(?P<ci>[\w\-]+)/$', SolicitudTecnico.as_view()),
 
     url(r'^admin/gestion/(?P<ci>[\w\-]+)/$', GestionUsuario.as_view()),

@@ -42,7 +42,7 @@ class SolicitudTecnico(APIView):
         return Response(solicitudes, status=status.HTTP_200_OK)
 
 
-class ProyectoTecnico(APIView):
+class ProyectosTecnico(APIView):
     permission_classes = [IsAuthenticated, esTecnico]
 
     def get(self, request, ci, format=None):
@@ -58,6 +58,42 @@ class ProyectoTecnico(APIView):
             aux['ubicacion'] = proyecto.codigo_pro.ubicacion
             p.append(aux)
         return Response(p, status=status.HTTP_200_OK)
+
+
+class ProyectoTecnico(APIView):
+    permission_classes = [IsAuthenticated, esTecnico]
+
+    def get(self, request, pk, format=None):
+        proyecto = Proyecto.objects.get(codigo=pk)
+        aux={}
+        aux['codigo'] = proyecto.codigo
+        aux['nombre'] = proyecto.nombre
+        aux['desc'] = proyecto.desc
+        aux['ubicacion'] = proyecto.ubicacion
+        aux['estatus'] = proyecto.estatus
+        aux['nombre_coord'] = proyecto.ci_coord.nombre1 + " " +proyecto.ci_coord.apellido1
+        aux['etapas'] = []
+        etapas = Etapa.objects.filter(codigo_pro=pk).order_by('letra')
+        for etapa in etapas:
+            aux_2 = {}
+            aux_2['codigo_eta'] = etapa.codigo
+            aux_2['nombre_eta'] = etapa.nombre
+            aux_2['letra_eta'] = etapa.letra
+            aux['etapas'].append(aux_2)
+        return Response(aux, status=status.HTTP_200_OK)
+
+
+class EtapaTecnico(APIView):
+    permission_classes = [IsAuthenticated, esTecnico]
+
+    def get(self, request, cod_pro, cod_eta, format=None):
+        etapa = Etapa.objects.get(codigo=cod_eta)
+        aux = {}
+        aux['codigo_eta'] = etapa.codigo
+        aux['letra_eta'] = etapa.letra
+        aux['nombre_eta'] = etapa.nombre
+        aux['estatus'] = etapa.estatus
+        return Response(aux, status=status.HTTP_200_OK)
 
 
 class ReporteInicial(APIView):
