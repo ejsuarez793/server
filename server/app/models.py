@@ -203,7 +203,7 @@ class Actividad(models.Model):
 class Reporte_detalle(models.Model):
     codigo = models.AutoField(primary_key=True)
     persona_a = models.CharField(max_length=60)
-    cargo_a = models.CharField(max_length=50)
+    cargo_a = models.CharField(max_length=60)
     nombre_t = models.CharField(max_length=60)
     vicios_ocu = models.CharField(max_length=500, blank=True)
     observ = models.CharField(max_length=500)

@@ -254,7 +254,7 @@ class ActividadDetail(APIView):
 
 
 class ProyectoMaterialDesglose(APIView):
-    permissions_classes = [IsAuthenticated] ##aqui falta poner esCoordinadoroALmacenista o dejarlo asi
+    permissions_classes = [IsAuthenticated]  # aqui falta poner esCoordinadoroALmacenista o dejarlo asi
 
     def get(self, request, pk, format=None):
         data_desglose = {}
@@ -263,7 +263,7 @@ class ProyectoMaterialDesglose(APIView):
         data_retornados = []
         aux = {}
 
-        #primero buscamos los materiales que estan en los presupuestos arpobados del proyecto
+        # primero buscamos los materiales que estan en los presupuestos arpobados del proyecto
         presupuestos = Presupuesto.objects.filter(codigo_pro=pk)
         for presupuesto in presupuestos:
             if (presupuesto.estatus == "Aprobado"):
@@ -281,13 +281,13 @@ class ProyectoMaterialDesglose(APIView):
         """print("presupuestos materiales")
         print(data_presupuestos)"""
 
-        #luego buscamos los materiales que han salido a una etapa del proyecto
+        # luego buscamos los materiales que han salido a una etapa del proyecto
         aux = {}
         etapas = Etapa.objects.filter(codigo_pro=pk)
         for etapa in etapas:
             etms = Etapa_tecnico_movimiento.objects.filter(codigo_eta=etapa.codigo)
             for etm in etms:
-                if (etm.codigo_mov.completado==True):
+                if (etm.codigo_mov.completado is True):
                     mm = Material_movimiento.objects.filter(codigo_mov=etm.codigo_mov.codigo)
                     for material in mm:
                         aux = {}
@@ -312,7 +312,7 @@ class ProyectoMaterialDesglose(APIView):
         data_desglose['presupuestos'] = data_presupuestos
         data_desglose['egresados'] = data_egresados
         data_desglose['retornados'] = data_retornados
-        #print(data_desglose)
+        # print(data_desglose)
         return Response(data_desglose, status=status.HTTP_200_OK)
 
 
