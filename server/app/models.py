@@ -72,8 +72,7 @@ class Solicitud(models.Model):
     tlf_cc = models.CharField(max_length=15)
     correo_cc = models.EmailField()
     cargo_cc = models.CharField(max_length=50)
-    f_sol = models.DateField(auto_now_add=True)
-    f_vis = models.DateField(blank=True, null=True)  # quitar null
+    f_sol = models.DateField(auto_now_add=True)  # quitar null
 
 
 class Proyecto(models.Model):
@@ -115,7 +114,7 @@ class Reporte_inicial(models.Model):
     )
     codigo = models.AutoField(primary_key=True)
     persona_a = models.CharField(max_length=60, blank=True)
-    cargo_a = models.CharField(max_length=50, blank=True)
+    cargo_a = models.CharField(max_length=60, blank=True)
     desc = models.CharField(max_length=500, blank=True)
     observ = models.CharField(max_length=500, blank=True)
     factibilidad = models.CharField(max_length=2, choices=opt, blank=True)
@@ -123,6 +122,7 @@ class Reporte_inicial(models.Model):
     complejidad = models.CharField(max_length=2, choices=opt, blank=True)
     completado = models.BooleanField(default=False)
     nombre_t = models.CharField(max_length=60, blank=True)
+    f_vis = models.DateField(blank=True, null=True)
 
 
 class Causa_rechazo(models.Model):

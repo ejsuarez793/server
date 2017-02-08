@@ -11,11 +11,53 @@ from rest_framework import status
 from django.db import transaction
 
 from app.serializers.serializersT import ReporteInicialSerializer, ReporteDetalleSerializer, ReporteSerializer
-from app.models import Proyecto, Etapa, Reporte, Movimiento, Material, Material_movimiento, Etapa_tecnico_movimiento, Trabajador
+from app.models import Proyecto, Etapa, Reporte, Movimiento, Material, Material_movimiento, Etapa_tecnico_movimiento, Trabajador, Proyecto_tecnico
 
 
 def viewsTecnico(arg):
     pass
+
+class SolicitudTecnico(APIView):
+    permission_classes = [IsAuthenticated, esTecnico]
+
+    def get(self, request, ci, format=None):
+        proyectos = Proyecto_tecnico.objects.filter(ci_tecnico=ci)
+        solicitudes = []
+        for proyecto in proyectos:
+            if (proyecto.codigo_pro.estatus == "Preventa" and proyecto.codigo_pro.codigo_ri == None):     
+                aux = {}
+                aux['codigo'] = proyecto.codigo_pro.codigo_s.codigo
+                aux['disp'] = proyecto.codigo_pro.codigo_s.disp
+                aux['desc'] = proyecto.codigo_pro.codigo_s.desc
+                aux['ubicacion'] = proyecto.codigo_pro.codigo_s.ubicacion
+                aux['estatus'] = proyecto.codigo_pro.codigo_s.estatus
+                aux['nombre_cc'] =  proyecto.codigo_pro.codigo_s.nombre_cc
+                aux['cargo_cc'] =  proyecto.codigo_pro.codigo_s.cargo_cc
+                aux['tlf_cc'] =  proyecto.codigo_pro.codigo_s.tlf_cc
+                aux['correo_cc'] =  proyecto.codigo_pro.codigo_s.correo_cc
+                aux['f_sol'] =  proyecto.codigo_pro.codigo_s.f_sol
+                aux['nombre_cliente'] = proyecto.codigo_pro.codigo_s.rif_c.nombre
+                aux['codigo_pro'] = proyecto.codigo_pro.codigo
+                solicitudes.append(aux)
+        return Response(solicitudes, status=status.HTTP_200_OK)
+
+
+class ProyectoTecnico(APIView):
+    permission_classes = [IsAuthenticated, esTecnico]
+
+    def get(self, request, ci, format=None):
+        proyectos = Proyecto_tecnico.objects.filter(ci_tecnico=ci)
+        p = []
+        for proyecto in proyectos:
+            aux = {}
+            aux['codigo'] = proyecto.codigo_pro.codigo
+            aux['estatus'] = proyecto.codigo_pro.estatus
+            #aux['codigo_ri'] = proyecto.codigo_pro.codigo_ri
+            aux['desc'] = proyecto.codigo_pro.desc
+            aux['nombre'] = proyecto.codigo_pro.nombre
+            aux['ubicacion'] = proyecto.codigo_pro.ubicacion
+            p.append(aux)
+        return Response(p, status=status.HTTP_200_OK)
 
 
 class ReporteInicial(APIView):
