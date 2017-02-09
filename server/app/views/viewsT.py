@@ -252,6 +252,22 @@ class ReporteInicial(APIView):
         return Response(reporte_inicial.data, status=status.HTTP_200_OK)
 
 
+class ActividadTecnico(APIView):
+    permission_classes = [IsAuthenticated, esTecnico] #,esTecnico]
+
+    def patch(self, request, cod_pro, cod_eta, format=None):
+        with transaction.atomic():
+            actividades = request.data
+            for actividad in actividades:
+                act = Actividad.objects.get(codigo=actividad['codigo'])
+                act.completada = True
+                act.save()
+            data = {}
+            data['data'] = request.data
+            data['msg'] = "Actividades completadas exitosamente."
+            return Response(data, status=status.HTTP_200_OK)
+
+
 class ReporteDetalle(APIView):
     permission_classes = [IsAuthenticated, esTecnico]
 
