@@ -290,14 +290,14 @@ class ReporteDetalle(APIView):
             return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 
 
-class ReporteDetail(APIView):
+class ReporteTecnico(APIView):
     permission_classes = [IsAuthenticated, esTecnico]
 
-    def post(self, request, pk_p, pk_e, format=None):
+    def post(self, request, codigo_pro, codigo_eta, format=None):
         try:
-            reporte = ReporteSerializer(data=request.data)
-            if (reporte.is_valid(raise_exception=True)):
-                reporte.save()
+             reporte = ReporteSerializer(data=request.data)
+             if (reporte.is_valid(raise_exception=True)):
+                # reporte.save()
                 data = {}
                 data['data'] = reporte.data
                 data['msg'] = "Reporte enviado exitosamente!"
@@ -310,7 +310,7 @@ class ReporteDetail(APIView):
             with transaction.atomic():
                 for codigo in request.data['codigos']:
                     reporte = Reporte.objects.get(codigo=codigo)
-                    reporte.leido=True
+                    reporte.leido = True
                     reporte.save()
                 data = {}
                 data['data'] = request.data
@@ -319,27 +319,29 @@ class ReporteDetail(APIView):
         except Exception as e:
             return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 
+
 # permite crear una solicitud de material para una etapa
-class SolicitudMaterialDetail(APIView):
+class SolicitudMaterial(APIView):
     permission_classes = [IsAuthenticated, esTecnico]
 
-    def post(self, request, pk_p, pk_e, format=None):
+    def post(self, request, codigo_pro, codigo_eta, format=None):
         try:
             with transaction.atomic():
-                movimiento = Movimiento.objects.create(tipo="Egreso")
-                tecnico = Trabajador.objects.get(ci=request.data['otros']['ci_tecnico'])
+                etapa = Etapa.objects.get(codigo=codigo_eta)
+                if (etapa.estatus != "Culminado"):
+                    movimiento = Movimiento.objects.create(tipo="Egreso")
+                    tecnico = Trabajador.objects.get(ci=request.data['ci_tecnico'])
+                    for material in request.data['materiales']:
+                        m = Material.objects.get(codigo=material['codigo'])
+                        Material_movimiento.objects.create(codigo_mov=movimiento, codigo_mat=m, cantidad=material['cantidad'])
 
-                #print(movimiento.codigo)
-                for material in request.data['materiales']:
-                    print(material)
-                    m = Material.objects.get(codigo=material['codigo_mat'])
-                    Material_movimiento.objects.create(codigo_mov=movimiento, codigo_mat=m, cantidad=material['cant']);
-
-                etapa = Etapa.objects.get(codigo=request.data['otros']['codigo_eta'])
-                Etapa_tecnico_movimiento.objects.create(ci_tecnico=tecnico, codigo_eta=etapa, codigo_mov=movimiento)
-                data = {}
-                data['data'] = request.data
-                data['msg'] = "Solicitud enviada exitosamente!"
-                return Response(data, status=status.HTTP_200_OK)
+                    etapa = Etapa.objects.get(codigo=codigo_eta)
+                    Etapa_tecnico_movimiento.objects.create(ci_tecnico=tecnico, codigo_eta=etapa, codigo_mov=movimiento)
+                    data = {}
+                    data['data'] = request.data
+                    data['msg'] = "Solicitud enviada exitosamente!"
+                    return Response(data, status=status.HTTP_200_OK)
+                else:
+                    return Response("Etapa ya fue culminada.", status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response(str(e), status=status.HTTP_400_BAD_REQUEST)

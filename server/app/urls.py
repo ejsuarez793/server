@@ -3,11 +3,11 @@ from django.conf.urls import url
 from rest_framework.authtoken import views
 
 
-from app.views.viewsA import MaterialList, MaterialDetail, EquipoList, EquipoDetail,ProveedorList, ProveedorDetail, Disponibilidad, MovimientoIngreso, MovimientoEgreso, MovimientoRetorno, ConsultaRango, ValidarMaterial, ValidarProveedor
+from app.views.viewsA import MaterialList, MaterialDetail, EquipoList, EquipoDetail, ProveedorList, ProveedorDetail, Disponibilidad, MovimientoIngreso, MovimientoEgreso, MovimientoRetorno, ConsultaRango, ValidarMaterial, ValidarProveedor
 from app.views.viewsV import ClienteList, ClienteDetail, SolicitudList, ProyectoProcesarEstatus, ProyectoCausaRechazo, ProyectoEncuesta, FacturaEtapa, FacturaConsultar
-from app.views.viewsC import ProyectoList, ProyectoDetail,ProyectoTecnicos, ProyectoMaterialDesglose, SolicitudAprobar, ProyectoEtapa, ProyectoEtapaDetail, ActividadDetail, PresupuestoList, PresupuestoDetail, Tecnicos, ProcesarSolicitud, ServicioList ,ServicioDetail,ProyectoCoordinador
-from app.views.viewsT import ProyectosTecnico, ProyectoTecnico, EtapaTecnico, ActividadTecnico, SolicitudTecnico, ReporteInicial, ReporteDetalle, ReporteDetail, SolicitudMaterialDetail
-from app.views.viewsAll import ListUsers,ValidarTrabajador,ValidarUsuario,ValidarCliente,CurrentUser,ValidarServicio
+from app.views.viewsC import ProyectoList, ProyectoDetail, ProyectoTecnicos, ProyectoMaterialDesglose, SolicitudAprobar, ProyectoEtapa, ProyectoEtapaDetail, ActividadDetail, PresupuestoList, PresupuestoDetail, Tecnicos, ProcesarSolicitud, ServicioList, ServicioDetail, ProyectoCoordinador
+from app.views.viewsT import ProyectosTecnico, ProyectoTecnico, EtapaTecnico, ActividadTecnico, SolicitudTecnico, ReporteInicial, ReporteDetalle, ReporteTecnico, SolicitudMaterial
+from app.views.viewsAll import ListUsers, ValidarTrabajador, ValidarUsuario, ValidarCliente, CurrentUser, ValidarServicio
 from app.views.viewsAdmin import GestionUsuario, ClaveUsuario
 
 
@@ -32,7 +32,7 @@ urlpatterns = [
     url(r'^proyecto/(?P<pk>[\w\-]+)/etapa/$', ProyectoEtapa.as_view()),
     url(r'^proyecto/(?P<pk_p>[\w\-]+)/etapa/(?P<pk_e>[\w\-]+)/$', ProyectoEtapaDetail.as_view()),
     url(r'^proyecto/(?P<pk_p>[\w\-]+)/etapa/(?P<pk_e>[\w\-]+)/actividad/$', ActividadDetail.as_view()),
-    url(r'^proyecto/(?P<pk_p>[\w\-]+)/etapa/(?P<pk_e>[\w\-]+)/solicitud/$', SolicitudMaterialDetail.as_view()),
+    # url(r'^proyecto/(?P<pk_p>[\w\-]+)/etapa/(?P<pk_e>[\w\-]+)/solicitud/$', SolicitudMaterialDetail.as_view()),
     url(r'^proyecto/(?P<pk>[\w\-]+)/presupuesto/$', PresupuestoList.as_view()),
     url(r'^proyecto/(?P<pro_pk>[\w\-]+)/presupuesto/(?P<pre_pk>[\w\-]+)/$', PresupuestoDetail.as_view()),
     url(r'^proyecto/(?P<pk>[\w\-]+)/materiales/$', ProyectoMaterialDesglose.as_view()),
@@ -69,12 +69,14 @@ urlpatterns = [
 
     url(r'^tecnico/proyecto/(?P<pk>[\w\-]+)/reporteInicial/$', ReporteInicial.as_view()),
     url(r'^tecnico/proyecto/(?P<pk_p>[\w\-]+)/etapa/(?P<pk_e>[\w\-]+)/reporteDetalle/$', ReporteDetalle.as_view()),
-    url(r'^tecnico/proyecto/(?P<pk_p>[\w\-]+)/etapa/(?P<pk_e>[\w\-]+)/reporte/$', ReporteDetail.as_view()),
+    # url(r'^tecnico/proyecto/(?P<pk_p>[\w\-]+)/etapa/(?P<pk_e>[\w\-]+)/reporte/$', ReporteDetail.as_view()),
     url(r'^tecnico/proyectos/(?P<ci>[\w\-]+)/$', ProyectosTecnico.as_view()),
     url(r'^tecnico/proyecto/(?P<pk>[\w\-]+)/$', ProyectoTecnico.as_view()),
     url(r'^tecnico/proyecto/(?P<cod_pro>[\w\-]+)/etapa/(?P<cod_eta>[\w\-]+)/$', EtapaTecnico.as_view()),
     url(r'^tecnico/proyecto/(?P<cod_pro>[\w\-]+)/etapa/(?P<cod_eta>[\w\-]+)/actividad/$', ActividadTecnico.as_view()),
     url(r'^tecnico/solicitudes/(?P<ci>[\w\-]+)/$', SolicitudTecnico.as_view()),
+    url(r'^tecnico/proyecto/(?P<codigo_pro>[\w\-]+)/etapa/(?P<codigo_eta>[\w\-]+)/solicitud/$', SolicitudMaterial.as_view()),
+    url(r'^tecnico/proyecto/(?P<codigo_pro>[\w\-]+)/etapa/(?P<codigo_eta>[\w\-]+)/reporte/$', ReporteTecnico.as_view()),
 
     url(r'^admin/gestion/(?P<ci>[\w\-]+)/$', GestionUsuario.as_view()),
     url(r'^admin/clave/(?P<ci>[\w\-]+)/$', ClaveUsuario.as_view()),
