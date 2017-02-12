@@ -241,7 +241,7 @@ class ActividadDetail(APIView):
 
     def post(self, request, pk_p,pk_e, format=None):
         try:
-            print(request.data)
+            # print(request.data)
             s_actividad = ActividadSerializer(data=request.data, many=True)
             if (s_actividad.is_valid(raise_exception=True)):
                 s_actividad.save()

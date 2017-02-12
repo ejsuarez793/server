@@ -10,7 +10,7 @@ from rest_framework import status
 from django.db import transaction
 
 from app.serializers.serializersT import ReporteInicialSerializer, ReporteDetalleSerializer, ReporteSerializer
-from app.models import Proyecto, Etapa, Presupuesto, Servicio_presupuesto, Material_presupuesto, Actividad, Reporte, Reporte_servicio, Movimiento, Material, Material_movimiento, Etapa_tecnico_movimiento, Trabajador, Proyecto_tecnico
+from app.models import Proyecto, Etapa, Presupuesto,Servicio, Servicio_presupuesto, Material_presupuesto, Actividad, Reporte, Reporte_servicio, Movimiento, Material, Material_movimiento, Etapa_tecnico_movimiento, Trabajador, Proyecto_tecnico
 
 
 def viewsTecnico(arg):
@@ -295,13 +295,27 @@ class ReporteTecnico(APIView):
 
     def post(self, request, codigo_pro, codigo_eta, format=None):
         try:
-             reporte = ReporteSerializer(data=request.data)
-             if (reporte.is_valid(raise_exception=True)):
-                # reporte.save()
-                data = {}
-                data['data'] = reporte.data
-                data['msg'] = "Reporte enviado exitosamente!"
-                return Response(data, status=status.HTTP_200_OK)
+            with transaction.atomic():
+                if (request.data['tipo'] != "Avance" and request.data['servicios']):
+                    return Response("Solo los reportes de tipo 'Avance' pueden tener servicios.",status=status.HTTP_400_BAD_REQUEST)
+                etapa = Etapa.objects.get(codigo=codigo_eta)
+                if (etapa.estatus!="Ejecucion"):
+                    return Response("Solo las etapas en ejecucion pueden recibir reportes.",status=status.HTTP_400_BAD_REQUEST)
+                reporte = ReporteSerializer(data=request.data)
+                if (reporte.is_valid(raise_exception=True)):
+                    reporte.save()
+                    # print(reporte.data['codigo'])
+                    servicios = request.data['servicios']
+                    for servicio in servicios:
+                        # print(servicio)
+                        ser = Servicio.objects.get(codigo=servicio['codigo'])
+                        rep = Reporte.objects.get(codigo=reporte.data['codigo'])
+                        cant = servicio['cantidad']
+                        Reporte_servicio.objects.create(codigo_ser=ser, codigo_rep=rep, cantidad=cant)
+                    data = {}
+                    data['data'] = reporte.data
+                    data['msg'] = "Reporte enviado exitosamente!"
+                    return Response(data, status=status.HTTP_200_OK)
         except Exception as e:
             return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 
