@@ -119,7 +119,7 @@ class SolicitudList(APIView):
                 aux['correo_cc'] = solicitud.correo_cc
                 aux['cargo_cc'] = solicitud.cargo_cc
                 aux['f_sol'] = solicitud.f_sol
-                aux['f_vis'] = solicitud.f_vis
+                # aux['f_vis'] = solicitud.f_vis
                 aux['nombre_cliente'] = solicitud.rif_c.nombre
                 aux['tlf1'] = solicitud.rif_c.tlf1
                 aux['tlf2'] = solicitud.rif_c.tlf2

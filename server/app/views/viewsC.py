@@ -70,6 +70,7 @@ class ProyectoDetail(APIView):
 
         proyecto = s_proyecto.data
         proyecto['cliente'] = s_cliente.data
+        proyecto['contacto'] = s_solicitud.data
         proyecto['presupuestos'] = s_presupuestos.data
 
         tecnicos = Proyecto_tecnico.objects.filter(codigo_pro=pk)
@@ -248,6 +249,23 @@ class ActividadDetail(APIView):
                 data = {}
                 data['data'] = s_actividad.data
                 data['msg'] = "Actividades definidas exitosamente!"
+                return Response(data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
+
+
+class ReporteProyecto(APIView):
+    permissions_classes = [IsAuthenticated, esCoordinador]
+    def patch(self, request, pk_p, pk_e, format=None):
+        try:
+            with transaction.atomic():
+                for codigo in request.data['codigos']:
+                    reporte = Reporte.objects.get(codigo=codigo)
+                    reporte.leido = True
+                    reporte.save()
+                data = {}
+                data['data'] = request.data
+                data['msg'] = "Reportes marcados como leidos exitosamente!"
                 return Response(data, status=status.HTTP_200_OK)
         except Exception as e:
             return Response(str(e), status=status.HTTP_400_BAD_REQUEST)

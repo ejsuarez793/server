@@ -240,16 +240,19 @@ class ReporteInicial(APIView):
     permission_classes = [IsAuthenticated, esTecnico] #,esTecnico]
 
     def post(self, request, pk, format=None):
-        proyecto = Proyecto.objects.get(codigo=pk)
-        if (proyecto.codigo_ri is None):
-            reporte_inicial = ReporteInicialSerializer(data=request.data)
-            if (reporte_inicial.is_valid()):
-                ri = reporte_inicial.save()
-                proyecto.codigo_ri = ri
-                proyecto.save()
-        else:
-            return Response("Este proyecto ya tiene un reporte inicial.", status=status.HTTP_400_BAD_REQUEST)
-        return Response(reporte_inicial.data, status=status.HTTP_200_OK)
+        with transaction.atomic():
+            proyecto = Proyecto.objects.get(codigo=pk)
+            if (proyecto.codigo_ri is None):
+                reporte_inicial = ReporteInicialSerializer(data=request.data)
+                if (reporte_inicial.is_valid()):
+                    ri = reporte_inicial.save()
+                    proyecto.codigo_ri = ri
+                    proyecto.save()
+                    proyecto.codigo_s.estatus = "Atendida"
+                    proyecto.codigo_s.save()
+            else:
+                return Response("Este proyecto ya tiene un reporte inicial.", status=status.HTTP_400_BAD_REQUEST)
+            return Response(reporte_inicial.data, status=status.HTTP_200_OK)
 
 
 class ActividadTecnico(APIView):
@@ -316,20 +319,6 @@ class ReporteTecnico(APIView):
                     data['data'] = reporte.data
                     data['msg'] = "Reporte enviado exitosamente!"
                     return Response(data, status=status.HTTP_200_OK)
-        except Exception as e:
-            return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
-
-    def patch(self, request, pk_p, pk_e, format=None):
-        try:
-            with transaction.atomic():
-                for codigo in request.data['codigos']:
-                    reporte = Reporte.objects.get(codigo=codigo)
-                    reporte.leido = True
-                    reporte.save()
-                data = {}
-                data['data'] = request.data
-                data['msg'] = "Reportes marcados como leidos exitosamente!"
-                return Response(data, status=status.HTTP_200_OK)
         except Exception as e:
             return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 

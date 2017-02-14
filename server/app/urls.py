@@ -5,7 +5,7 @@ from rest_framework.authtoken import views
 
 from app.views.viewsA import MaterialList, MaterialDetail, EquipoList, EquipoDetail, ProveedorList, ProveedorDetail, Disponibilidad, MovimientoIngreso, MovimientoEgreso, MovimientoRetorno, ConsultaRango, ValidarMaterial, ValidarProveedor
 from app.views.viewsV import ClienteList, ClienteDetail, SolicitudList, ProyectoProcesarEstatus, ProyectoCausaRechazo, ProyectoEncuesta, FacturaEtapa, FacturaConsultar
-from app.views.viewsC import ProyectoList, ProyectoDetail, ProyectoTecnicos, ProyectoMaterialDesglose, SolicitudAprobar, ProyectoEtapa, ProyectoEtapaDetail, ActividadDetail, PresupuestoList, PresupuestoDetail, Tecnicos, ProcesarSolicitud, ServicioList, ServicioDetail, ProyectoCoordinador
+from app.views.viewsC import ProyectoList, ProyectoDetail, ProyectoTecnicos, ReporteProyecto, ProyectoMaterialDesglose, SolicitudAprobar, ProyectoEtapa, ProyectoEtapaDetail, ActividadDetail, PresupuestoList, PresupuestoDetail, Tecnicos, ProcesarSolicitud, ServicioList, ServicioDetail, ProyectoCoordinador
 from app.views.viewsT import ProyectosTecnico, ProyectoTecnico, EtapaTecnico, ActividadTecnico, SolicitudTecnico, ReporteInicial, ReporteDetalle, ReporteTecnico, SolicitudMaterial
 from app.views.viewsAll import ListUsers, ValidarTrabajador, ValidarUsuario, ValidarCliente, CurrentUser, ValidarServicio
 from app.views.viewsAdmin import GestionUsuario, ClaveUsuario
@@ -21,6 +21,7 @@ urlpatterns = [
     url(r'^validar/usuario/$', ValidarUsuario.as_view()),
     url(r'^validar/trabajador/$', ValidarTrabajador.as_view()),
     url(r'^validar/cliente/$', ValidarCliente.as_view()),
+    url(r'^validar/servicio/$', ValidarServicio.as_view()),
     url(r'^solicitud/$', SolicitudList.as_view()),
     url(r'^proyecto/(?P<pk>[\w\-]+)/estatus/$', ProyectoProcesarEstatus.as_view()),
     url(r'^proyecto/(?P<pk>[\w\-]+)/causaRechazo/$', ProyectoCausaRechazo.as_view()),
@@ -32,6 +33,7 @@ urlpatterns = [
     url(r'^proyecto/(?P<pk>[\w\-]+)/etapa/$', ProyectoEtapa.as_view()),
     url(r'^proyecto/(?P<pk_p>[\w\-]+)/etapa/(?P<pk_e>[\w\-]+)/$', ProyectoEtapaDetail.as_view()),
     url(r'^proyecto/(?P<pk_p>[\w\-]+)/etapa/(?P<pk_e>[\w\-]+)/actividad/$', ActividadDetail.as_view()),
+    url(r'^proyecto/(?P<pk_p>[\w\-]+)/etapa/(?P<pk_e>[\w\-]+)/reporte/$', ReporteProyecto.as_view()),
     # url(r'^proyecto/(?P<pk_p>[\w\-]+)/etapa/(?P<pk_e>[\w\-]+)/solicitud/$', SolicitudMaterialDetail.as_view()),
     url(r'^proyecto/(?P<pk>[\w\-]+)/presupuesto/$', PresupuestoList.as_view()),
     url(r'^proyecto/(?P<pro_pk>[\w\-]+)/presupuesto/(?P<pre_pk>[\w\-]+)/$', PresupuestoDetail.as_view()),
@@ -42,7 +44,7 @@ urlpatterns = [
     url(r'^solicitud/procesar/$', ProcesarSolicitud.as_view()),
     url(r'^servicio/$', ServicioList.as_view()),
     url(r'^servicio/(?P<pk>[\w\-]+)/$', ServicioDetail.as_view()),
-    url(r'^validar/servicio/$', ValidarServicio.as_view()),
+    
     url(r'^proyecto/coordinador/(?P<pk>[\w\-]+)/$', ProyectoCoordinador.as_view()),
 
 
