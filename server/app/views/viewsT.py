@@ -250,9 +250,12 @@ class ReporteInicial(APIView):
                     proyecto.save()
                     proyecto.codigo_s.estatus = "Atendida"
                     proyecto.codigo_s.save()
+                    data = {}
+                    data['data'] = reporte_inicial.data
+                    data['msg'] = "Reporte incial completado exitosamente."
             else:
                 return Response("Este proyecto ya tiene un reporte inicial.", status=status.HTTP_400_BAD_REQUEST)
-            return Response(reporte_inicial.data, status=status.HTTP_200_OK)
+            return Response(data, status=status.HTTP_200_OK)
 
 
 class ActividadTecnico(APIView):
