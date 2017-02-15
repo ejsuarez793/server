@@ -350,6 +350,7 @@ class Factura(models.Model):
     pagada = models.BooleanField(default=False)
     banco_dest = models.CharField(max_length=100, blank=True)
     nro_ref = models.CharField(max_length=100, blank=True)
+    monto_total = models.DecimalField(max_digits=50, decimal_places=4)
 
 
 #  aqui el ci almacenista puede ser null por la slicitud de material, persona

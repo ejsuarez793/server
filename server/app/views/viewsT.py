@@ -303,10 +303,10 @@ class ReporteTecnico(APIView):
         try:
             with transaction.atomic():
                 if (request.data['tipo'] != "Avance" and request.data['servicios']):
-                    return Response("Solo los reportes de tipo 'Avance' pueden tener servicios.",status=status.HTTP_400_BAD_REQUEST)
+                    return Response("Solo los reportes de tipo 'Avance' pueden tener servicios.", status=status.HTTP_400_BAD_REQUEST)
                 etapa = Etapa.objects.get(codigo=codigo_eta)
-                if (etapa.estatus!="Ejecucion"):
-                    return Response("Solo las etapas en ejecucion pueden recibir reportes.",status=status.HTTP_400_BAD_REQUEST)
+                if (etapa.estatus != "Ejecucion"):
+                    return Response("Solo las etapas en ejecucion pueden recibir reportes.", status=status.HTTP_400_BAD_REQUEST)
                 reporte = ReporteSerializer(data=request.data)
                 if (reporte.is_valid(raise_exception=True)):
                     reporte.save()

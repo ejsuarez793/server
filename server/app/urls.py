@@ -4,7 +4,7 @@ from rest_framework.authtoken import views
 
 
 from app.views.viewsA import MaterialList, MaterialDetail, EquipoList, EquipoDetail, ProveedorList, ProveedorDetail, Disponibilidad, MovimientoIngreso, MovimientoEgreso, MovimientoRetorno, ConsultaRango, ValidarMaterial, ValidarProveedor
-from app.views.viewsV import ClienteList, ClienteDetail, SolicitudList, ProyectoProcesarEstatus, ProyectoCausaRechazo, ProyectoEncuesta, FacturaEtapa, FacturaConsultar
+from app.views.viewsV import ClienteList, ClienteDetail, ResumenClientes, SolicitudList, ProyectoProcesarEstatus, ProyectoCausaRechazo, ProyectoEncuesta, FacturaEtapa, FacturaConsultar
 from app.views.viewsC import ProyectoList, ProyectoDetail, ProyectoTecnicos, ReporteProyecto, ProyectoMaterialDesglose, SolicitudAprobar, ProyectoEtapa, ProyectoEtapaDetail, ActividadDetail, PresupuestoList, PresupuestoDetail, Tecnicos, ProcesarSolicitud, ServicioList, ServicioDetail, ProyectoCoordinador
 from app.views.viewsT import ProyectosTecnico, ProyectoTecnico, EtapaTecnico, ActividadTecnico, SolicitudTecnico, ReporteInicial, ReporteDetalle, ReporteTecnico, SolicitudMaterial
 from app.views.viewsAll import ListUsers, ValidarTrabajador, ValidarUsuario, ValidarCliente, CurrentUser, ValidarServicio
@@ -57,8 +57,10 @@ urlpatterns = [
     url(r'^almacen/movimiento/retorno/(?P<codigo_pro>[\w\-]+)/$', MovimientoRetorno.as_view()),
     url(r'^almacen/consulta/(?P<tipo>[\w\-]+)/(?P<desde>[\w\-]+)/(?P<hasta>[\w\-]+)/$', ConsultaRango.as_view()),
     
+
     url(r'^ventas/factura/consultar/(?P<cod_eta>[\w\-]+)/(?P<cod_pre>[\w\-]+)/$', FacturaConsultar.as_view()),
     url(r'^ventas/factura/(?P<cod_eta>[\w\-]+)/$', FacturaEtapa.as_view()),
+    url(r'^ventas/resumen/$', ResumenClientes.as_view()),
     url(r'^material/$', MaterialList.as_view()),
     url(r'^material/(?P<pk>[\w\-]+)/$', MaterialDetail.as_view()),
     url(r'^validar/material/$', ValidarMaterial.as_view()),
