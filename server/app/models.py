@@ -301,7 +301,7 @@ class Material(models.Model):
     presen = models.CharField(max_length=50, blank=True)
     f_act = models.DateField(auto_now=True)
     precio_act = models.DecimalField(max_digits=30, decimal_places=2)
-    cantidad = models.IntegerField()
+    cantidad = models.IntegerField(blank=True, default=0)
     serial = models.CharField(max_length=50, unique=True, blank=True, null=True)
     largo = models.CharField(max_length=20, blank=True)
     ancho = models.CharField(max_length=20, blank=True)

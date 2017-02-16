@@ -27,7 +27,7 @@ class MaterialList(APIView):
     permission_classes = [IsAuthenticated, esAlmacenista]
 
     def get(self, request, format=None):
-        materiales = Material.objects.all()
+        materiales = Material.objects.all().order_by('codigo')
         serializer = MaterialSerializer(materiales, many=True)
         for material in serializer.data:
             proveedores = Material_proveedor.objects.filter(codigo_mat=material['codigo'])
@@ -58,8 +58,8 @@ class MaterialList(APIView):
                 data['data'] = material.validated_data
                 data['msg'] = "Material creado exitosamente."
                 return Response(data, status.HTTP_201_CREATED)
-        except:
-            return Response(mps.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 
 
 class MaterialDetail(APIView):
@@ -216,7 +216,10 @@ class MovimientoIngreso(APIView):
                 aux['desc']  = material.desc
                 aux['serial']  = material.serial
                 aux['cantidad'] = material.cantidad
-                data['materiales'].append(aux)
+                if (aux['serial'] != None and aux['cantidad'] == 0): #  si el material tiene serial, y solo si la cantidad
+                    data['materiales'].append(aux)                   # es 0 se puede agregar
+                elif(aux['serial'] == None): # si no tiene serial se puede agregar normalmente
+                    data['materiales'].append(aux)
 
             return Response(data,status=status.HTTP_200_OK)
         except Proveedor.DoesNotExist:

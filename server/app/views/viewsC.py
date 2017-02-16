@@ -89,27 +89,25 @@ class ProyectoDetail(APIView):
         except Causa_rechazo.DoesNotExist:
             proyecto['causa_rechazo'] = None
 
-
         try:
             etapas = Etapa.objects.filter(codigo_pro=s_proyecto.data['codigo']).order_by('codigo')
             s_etapas = EtapaSerializer(etapas, many=True)
+            solicitudes = []
             try:
-                for etapa in s_etapas.data: 
+                for etapa in s_etapas.data:
                     reporte_detalle = Reporte_detalle.objects.get(codigo=etapa['codigo_rd'])
                     s_reporte_detalle = ReporteDetalleSerializer(reporte_detalle)
                     etapa['reporte_detalle'] = s_reporte_detalle.data
-
                     reportes = Reporte.objects.filter(codigo_eta=etapa['codigo']).order_by('fecha')
                     s_reportes = ReporteSerializer(reportes, many=True)
-                    
                     for reporte in s_reportes.data:
                         rep_sev = Reporte_servicio.objects.filter(codigo_rep=reporte['codigo'])
                         reporte['servicios'] = []
                         for rs in rep_sev:
-                            aux={}
-                            aux['codigo']=rs.codigo_ser.codigo
-                            aux['desc']=rs.codigo_ser.desc
-                            aux['cantidad']=rs.cantidad
+                            aux = {}
+                            aux['codigo'] = rs.codigo_ser.codigo
+                            aux['desc'] = rs.codigo_ser.desc
+                            aux['cantidad'] = rs.cantidad
                             reporte['servicios'].append(aux)
 
                     etapa['reportes'] = s_reportes.data
@@ -119,12 +117,12 @@ class ProyectoDetail(APIView):
                     etapa['actividades'] = s_actividades.data
 
                     etms = Etapa_tecnico_movimiento.objects.filter(codigo_eta=etapa['codigo']).order_by('codigo')
-                    solicitudes=[]
+                    
                     for etm in etms:
-                        if (etm.codigo_mov.tipo=="Egreso"):
+                        if (etm.codigo_mov.tipo == "Egreso"):
                             aux = {}
                             aux['codigo'] = etm.codigo_mov.codigo
-                            aux['nombre_t'] = etm.ci_tecnico.nombre1 + " " +etm.ci_tecnico.apellido1
+                            aux['nombre_t'] = etm.ci_tecnico.nombre1 + " " + etm.ci_tecnico.apellido1
                             aux['ci_tecnico'] = etm.ci_tecnico.ci
                             aux['f_sol'] = etm.codigo_mov.f_sol
                             aux['letra_eta'] = etm.codigo_eta.letra
@@ -142,19 +140,17 @@ class ProyectoDetail(APIView):
                                 aux['materiales'].append(aux_2)
                             solicitudes.append(aux)
                     proyecto['solicitudes'] = solicitudes
-            except Reporte_detalle.DoesNotExist: 
+            except Reporte_detalle.DoesNotExist:
                 etapa['reporte_detalle'] = None
             proyecto['etapas'] = s_etapas.data
         except Etapa.DoesNotExist:
             proyecto['etapas'] = None
 
-
-
         try:
             encuesta = Encuesta.objects.get(codigo_pro=s_proyecto.data['codigo'])
             s_encuesta = EncuestaSerializer(encuesta)
             preguntas = Pregunta.objects.filter(codigo_en=s_encuesta.data['codigo'])
-            s_preguntas = PreguntaSerializer(preguntas,many=True)
+            s_preguntas = PreguntaSerializer(preguntas, many=True)
             proyecto['encuesta'] = s_encuesta.data
             proyecto['encuesta']['preguntas'] = s_preguntas.data
         except (Causa_rechazo.DoesNotExist, Encuesta.DoesNotExist):
@@ -169,7 +165,7 @@ class ProyectoDetail(APIView):
             if (s_proyecto.is_valid(raise_exception=True)):
                 data = {}
                 etapas = Etapa.objects.filter(codigo_pro=pk)
-                if(s_proyecto.initial_data['accion']=="Iniciar"):
+                if(s_proyecto.initial_data['accion'] == "Iniciar"):
                     data['msg'] = "Proyecto iniciado exitosamente."
                     pts = Proyecto_tecnico.objects.filter(codigo_pro=pk)
                     if not pts:
