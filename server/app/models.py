@@ -73,6 +73,7 @@ class Solicitud(models.Model):
     correo_cc = models.EmailField()
     cargo_cc = models.CharField(max_length=50)
     f_sol = models.DateField(auto_now_add=True)  # quitar null
+    f_vis = models.DateField(null=True)
 
 
 class Proyecto(models.Model):

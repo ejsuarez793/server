@@ -452,7 +452,7 @@ class ResumenClientes(APIView):
                         aux_cliente['promedio_encuestas'] = Decimal(Decimal(aux_cliente['puntaje_total']) / Decimal( nro_preguntas * aux_cliente['nro_encuestas'])).quantize(dos_decimales)
                     resumen.append(aux_cliente)
             # print("ok")
-            print(resumen)
+            # print(resumen)
             return Response(resumen, status=status.HTTP_200_OK)
         except Exception as e:
             return Response(str(e), status=status.HTTP_400_BAD_REQUEST)

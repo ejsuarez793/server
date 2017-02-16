@@ -535,13 +535,13 @@ class ProcesarSolicitud(APIView):
 
 class ServicioList(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
-    queryset = Servicio.objects.all()
+    queryset = Servicio.objects.all().order_by('codigo')
     serializer_class = ServicioSerializer
 
 
 class ServicioDetail(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated]
-    queryset = Servicio.objects.all()
+    queryset = Servicio.objects.all().order_by('codigo')
     serializer_class = ServicioSerializer
 
 

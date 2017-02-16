@@ -1,6 +1,6 @@
-from django.contrib.auth.models import User
+# from django.contrib.auth.models import User
 from app.models import Trabajador, Presupuesto, Movimiento, Proyecto, Proyecto_tecnico, Etapa_tecnico_movimiento
-from app.serializers.serializersAll import UserSerializer, TrabajadorSerializer
+# from app.serializers.serializersAll import UserSerializer, TrabajadorSerializer
 from rest_framework.permissions import (
     IsAuthenticated,
     IsAdminUser,
@@ -8,7 +8,7 @@ from rest_framework.permissions import (
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from django.db import transaction
+# from django.db import transaction
 
 
 def viewsAdministrador(arg):
