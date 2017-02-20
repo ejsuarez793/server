@@ -2,7 +2,7 @@
 from app.models import Trabajador, Solicitud, Servicio,Proyecto, Etapa, Actividad, Reporte_detalle, Reporte, Reporte_servicio, Causa_rechazo, Encuesta, Pregunta, Movimiento, Etapa_tecnico_movimiento, Material_movimiento, Material, Cliente,Reporte_inicial,Presupuesto, Servicio_presupuesto, Material_presupuesto, Proyecto_tecnico
 from app.serializers.serializersAll import TrabajadorSerializer
 from app.serializers.serializersV import ClienteSerializer
-from app.serializers.serializersC import ProyectoSerializer, ProyectoSerializerPG, EtapaSerializer, ActividadSerializer, ReporteDetalleSerializer, ReporteSerializer, PresupuestoSerializer, Causa_rechazoSerializer, PreguntaSerializer, EncuestaSerializer, MaterialSerializer, Servicio_presupuestoSerializer, Material_presupuestoSerializer, SolicitudSerializer, SolicitudSerializerAll, ProyectoTecnicoSerializer, ServicioSerializer, ReporteInicialSerializer
+from app.serializers.serializersC import ProyectoSerializer,ProyectoEstatusSerializer, ProyectoSerializerPG, EtapaSerializer, ActividadSerializer, ReporteDetalleSerializer, ReporteSerializer, PresupuestoSerializer, Causa_rechazoSerializer, PreguntaSerializer, EncuestaSerializer, MaterialSerializer, Servicio_presupuestoSerializer, Material_presupuestoSerializer, SolicitudSerializer, SolicitudSerializerAll, ProyectoTecnicoSerializer, ServicioSerializer, ReporteInicialSerializer
 from django.db import transaction
 from rest_framework.permissions import (
     #AllowAny,
@@ -37,7 +37,7 @@ class ProyectoList(APIView):
 
 
 class ProyectoDetail(APIView):
-    permission_classes = [IsAuthenticated, esCoordinador]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request, pk, format=None):
         proyecto = Proyecto.objects.get(codigo=pk)
@@ -182,6 +182,45 @@ class ProyectoDetail(APIView):
                 s_proyecto.save()
                 data['data'] = s_proyecto.data
                 return Response(data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request, pk, format=None):
+        try:
+            with transaction.atomic():
+                proyecto = Proyecto.objects.get(codigo=pk)
+                if(proyecto.estatus == "Preventa"):
+                    s_proyecto = ProyectoEstatusSerializer(proyecto, data=request.data)
+                    if(s_proyecto.is_valid(raise_exception=True)):
+                        presupuestos = Presupuesto.objects.filter(codigo_pro=s_proyecto.validated_data['codigo'])
+                        s_presupuestos = PresupuestoSerializer(presupuestos, many=True)
+                        if(s_proyecto.validated_data['estatus'] == "Aprobado"):
+                            flag = False
+                            for presupuesto in s_presupuestos.data:
+                                if (presupuesto['estatus'] == "Preventa"):
+                                    return Response("Proyecto tiene un presupuesto que sigue en preventa", status=status.HTTP_400_BAD_REQUEST)
+                            for presupuesto in s_presupuestos.data:
+                                if (presupuesto['estatus'] == "Rechazado"):
+                                    print("p")
+                                    # Material_presupuesto.objects.filter(codigo_pre=presupuesto['codigo']).delete()
+                                    # Servicio_presupuesto.objects.filter(codigo_pre=presupuesto['codigo']).delete()
+                                    # Presupuesto.objects.get(codigo=presupuesto['codigo']).delete()
+
+                        elif(s_proyecto.validated_data['estatus'] == "Rechazado"):
+                            flag = False
+                            for presupuesto in s_presupuestos.data:
+                                if (presupuesto['estatus'] != "Rechazado"):
+                                    flag = True
+                            if (flag is True):
+                                return Response("Proyecto tiene un presupuesto que no ha sido rechazado", status=status.HTTP_400_BAD_REQUEST)
+                        s_proyecto.save()
+                        msg = "Proyecto " + s_proyecto.validated_data['estatus'] + " Exitosamente!"
+                        data = {}
+                        data['data'] = s_proyecto.data
+                        data['msg'] = msg
+                        return Response(data, status=status.HTTP_200_OK)
+                else:
+                    return Response("El estado del proyecto no permite realizar dicha accion.",status=status.HTTP_400_BAD_REQUEST)     
         except Exception as e:
             return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 

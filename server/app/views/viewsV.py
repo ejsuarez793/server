@@ -11,7 +11,7 @@ from django.db import transaction
 from decimal import Decimal
 
 from app.permissions import esVendedor
-from app.serializers.serializersV import ProyectoEstatusSerializer, PresupuestoSerializer, EncuestaSerializer, PreguntaSerializer, FacturaSerializer
+from app.serializers.serializersV import  PresupuestoSerializer, EncuestaSerializer, PreguntaSerializer, FacturaSerializer
 from app.models import Proyecto, Encuesta, Pregunta, Presupuesto, Material_presupuesto, Servicio_presupuesto, Reporte, Reporte_servicio, Etapa_tecnico_movimiento, Material_movimiento, Etapa, Factura
 
 
@@ -142,7 +142,7 @@ class SolicitudList(APIView):
             return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 
 
-class ProyectoProcesarEstatus(APIView):
+"""class ProyectoProcesarEstatus(APIView):
     permission_classes = [esVendedor]
 
     def patch(self, request, pk, format=None):
@@ -180,7 +180,7 @@ class ProyectoProcesarEstatus(APIView):
                         data['msg'] = msg
                 return Response(data, status=status.HTTP_200_OK)
         except Exception as e:
-            return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
+            return Response(str(e), status=status.HTTP_400_BAD_REQUEST)"""
 
 
 class ProyectoCausaRechazo(APIView):

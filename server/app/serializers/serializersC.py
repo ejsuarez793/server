@@ -25,6 +25,12 @@ class ProyectoSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class ProyectoEstatusSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Proyecto
+        fields = ('codigo', 'estatus')
+
+
 class ProyectoSerializerPG(serializers.ModelSerializer):
     class Meta:
         model = Proyecto
