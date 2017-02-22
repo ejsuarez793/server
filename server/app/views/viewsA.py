@@ -470,14 +470,14 @@ class EquipoList(generics.ListCreateAPIView):
 class EquipoDetail(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated, esAlmacenista]
 
-    queryset = Equipo.objects.all()
+    queryset = Equipo.objects.all().order_by('rif')
     serializer_class = EquipoSerializer
 
 
 class ProveedorList(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated, esAlmacenista]
 
-    queryset = Proveedor.objects.all()
+    queryset = Proveedor.objects.all().order_by('rif')
     serializer_class = ProveedorSerializer
 
 

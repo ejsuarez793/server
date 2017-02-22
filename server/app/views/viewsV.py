@@ -42,7 +42,7 @@ class ClienteList(APIView):
 
     def get(self, request, format=None):
         try:
-            clientes = Cliente.objects.all()
+            clientes = Cliente.objects.all().order_by('rif')
             data = []
             for cliente in clientes:
                 aux = {}
@@ -103,7 +103,7 @@ class SolicitudList(APIView):
 
     def get(self, request, format=None):
         try:
-            solicitudes = Solicitud.objects.all()
+            solicitudes = Solicitud.objects.all().order_by('codigo')
             data = []
             for solicitud in solicitudes:
                 aux = {}

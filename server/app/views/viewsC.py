@@ -25,7 +25,7 @@ class ProyectoList(APIView):
     permission_classes = [IsAuthenticated, esCoordinador]
 
     def get(self, request, format=None):
-        proyectos = Proyecto.objects.all()
+        proyectos = Proyecto.objects.all().order_by('codigo')
         s_proyectos = ProyectoSerializer(proyectos, many=True)
         for proyecto in s_proyectos.data:
             solicitud = Solicitud.objects.get(codigo=proyecto['codigo_s'])
@@ -66,7 +66,7 @@ class ProyectoDetail(APIView):
             for material in presupuesto['materiales']:
                 mat = Material.objects.get(codigo=material['codigo_mat'])
                 s_mat = MaterialSerializer(mat)
-                material['desc'] = s_mat.data['desc']
+                material['desc'] = s_mat.data['nombre']+ " "+ s_mat.data['desc'] + " "+s_mat.data['marca']
 
         proyecto = s_proyecto.data
         proyecto['cliente'] = s_cliente.data
@@ -201,10 +201,10 @@ class ProyectoDetail(APIView):
                                     return Response("Proyecto tiene un presupuesto que sigue en preventa", status=status.HTTP_400_BAD_REQUEST)
                             for presupuesto in s_presupuestos.data:
                                 if (presupuesto['estatus'] == "Rechazado"):
-                                    print("p")
-                                    # Material_presupuesto.objects.filter(codigo_pre=presupuesto['codigo']).delete()
-                                    # Servicio_presupuesto.objects.filter(codigo_pre=presupuesto['codigo']).delete()
-                                    # Presupuesto.objects.get(codigo=presupuesto['codigo']).delete()
+                                    # print("p")
+                                    Material_presupuesto.objects.filter(codigo_pre=presupuesto['codigo']).delete()
+                                    Servicio_presupuesto.objects.filter(codigo_pre=presupuesto['codigo']).delete()
+                                    Presupuesto.objects.get(codigo=presupuesto['codigo']).delete()
 
                         elif(s_proyecto.validated_data['estatus'] == "Rechazado"):
                             flag = False
@@ -388,6 +388,9 @@ class PresupuestoList(APIView):
     def post(self, request, pk, format=None):
         try:
             with transaction.atomic():
+                proyecto = Proyecto.objects.get(codigo=pk)
+                if (proyecto.estatus == "Culminado" or proyecto.estatus == "Rechazado"):
+                    return Response("El estado del proyecto no permite solicitar un presupuesto.", status=status.HTTP_400_BAD_REQUEST)
                 s_presupuesto = PresupuestoSerializer(data=request.data)
                 if (s_presupuesto.is_valid(raise_exception=True)):
                     s_presupuesto.save()
@@ -478,7 +481,7 @@ class Tecnicos(APIView):
         """
         Return a list of all users.
         """
-        tecnicos = Trabajador.objects.filter(cargo='t')
+        tecnicos = Trabajador.objects.filter(cargo='t').order_by('ci')
         serializer = TrabajadorSerializer(tecnicos, many=True)
         for tecnico in serializer.data:
             tecnico['nombre'] = tecnico['nombre1'] +" "+tecnico['nombre2'] +" "+tecnico['apellido1'] +" "+tecnico['apellido2']
@@ -589,7 +592,7 @@ class ProyectoCoordinador(APIView):
     
     def get(self, request, pk, format=None):
         try:
-            proyectos = Proyecto.objects.filter(ci_coord=pk)
+            proyectos = Proyecto.objects.filter(ci_coord=pk).order_by('codigo')
             serializer = ProyectoSerializer(proyectos, many=True)
             for proyecto in serializer.data:
                 solicitud = Solicitud.objects.get(codigo=proyecto['codigo_s'])
