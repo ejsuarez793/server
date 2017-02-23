@@ -270,7 +270,7 @@ class FacturaConsultar(APIView):
                 for material in materiales_presupuesto:
                     aux = {}
                     aux['codigo'] = material.codigo_mat.codigo
-                    aux['desc'] = material.codigo_mat.nombre
+                    aux['desc'] = material.codigo_mat.nombre + " "+ material.codigo_mat.desc + " "+ material.codigo_mat.marca
                     aux['precio_unitario'] = material.precio_venta
                     aux['cantidad'] = material.cantidad
                     elementos_presupuesto.append(aux)

@@ -49,7 +49,7 @@ class ProyectoDetail(APIView):
         cliente = Cliente.objects.get(rif=s_solicitud.data['rif_c'])
         s_cliente = ClienteSerializer(cliente)
 
-        presupuestos = Presupuesto.objects.filter(codigo_pro=s_proyecto.data['codigo'])
+        presupuestos = Presupuesto.objects.filter(codigo_pro=s_proyecto.data['codigo']).order_by('codigo')
         s_presupuestos = PresupuestoSerializer(presupuestos, many=True)
         for presupuesto in s_presupuestos.data:
             servicios = Servicio_presupuesto.objects.filter(codigo_pre=presupuesto['codigo'])
@@ -328,6 +328,7 @@ class ProyectoMaterialDesglose(APIView):
                     aux['nombre'] = material_presupuesto.codigo_mat.nombre
                     aux['desc'] = material_presupuesto.codigo_mat.desc
                     aux['serial'] = material_presupuesto.codigo_mat.serial
+                    aux['marca'] = material_presupuesto.codigo_mat.marca
                     aux['cant'] = material_presupuesto.cantidad
                     data_presupuestos.append(aux)
 
@@ -350,6 +351,7 @@ class ProyectoMaterialDesglose(APIView):
                         aux['nombre'] = material.codigo_mat.nombre
                         aux['desc'] = material.codigo_mat.desc
                         aux['serial'] = material.codigo_mat.serial
+                        aux['marca'] = material.codigo_mat.marca
                         aux['cant'] = material.cantidad
                         aux['codigo_eta'] = etapa.codigo
                         aux['nombre_eta'] = etapa.nombre
