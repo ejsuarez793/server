@@ -457,8 +457,8 @@ class ResumenClientes(APIView):
                 if(aux_cliente['nro_proyectos'] > 0):
                     aux_cliente['promedio_monto'] = aux_cliente['monto_total'] / aux_cliente['nro_proyectos']
                     if (aux_cliente['nro_encuestas'] > 0):
-                        dos_decimales = Decimal(10) ** -2 
-                        aux_cliente['promedio_encuestas'] = Decimal(Decimal(aux_cliente['puntaje_total']) / Decimal( nro_preguntas * aux_cliente['nro_encuestas'])).quantize(dos_decimales)
+                        dos_decimales = Decimal(10) ** -2
+                        aux_cliente['promedio_encuestas'] = Decimal(Decimal(aux_cliente['puntaje_total']) / Decimal(nro_preguntas * aux_cliente['nro_encuestas'])).quantize(dos_decimales)
                     resumen.append(aux_cliente)
             # print("ok")
             # print(resumen)
