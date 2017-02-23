@@ -234,8 +234,14 @@ class FacturaConsultar(APIView):
                 if(etapa.estatus != "Culminado"):
                     return Response("La etapa no ha culminado no se puede facturar.", status=status.HTTP_400_BAD_REQUEST)
 
+                if (cod_pre != 'null'):
+                    presupuesto = Presupuesto.objects.get(codigo=cod_pre)
+                    if (presupuesto.estatus != "Aprobado"):
+                        return Response("El presupuesto enviado ya se encuentra cerrado, no se puede asociar factura.", status=status.HTTP_400_BAD_REQUEST)
+
                 detalle = {}
                 if (cod_pre == 'null'):
+
                     factura = Factura.objects.get(codigo_eta=cod_eta)
                     cod_pre = factura.codigo_pre.codigo
                     detalle['nombre_cliente'] = factura.codigo_eta.codigo_pro.codigo_s.rif_c.nombre
@@ -270,7 +276,7 @@ class FacturaConsultar(APIView):
                 for material in materiales_presupuesto:
                     aux = {}
                     aux['codigo'] = material.codigo_mat.codigo
-                    aux['desc'] = material.codigo_mat.nombre + " "+ material.codigo_mat.desc + " "+ material.codigo_mat.marca
+                    aux['desc'] = material.codigo_mat.nombre + " " + material.codigo_mat.desc + " " + material.codigo_mat.marca
                     aux['precio_unitario'] = material.precio_venta
                     aux['cantidad'] = material.cantidad
                     elementos_presupuesto.append(aux)
@@ -370,6 +376,9 @@ class FacturaEtapa(APIView):
     def post(self, request, cod_eta, format=None):
         try:
             with transaction.atomic():
+                presupuesto = Presupuesto.objects.get(codigo=request.data['codigo_pre'])
+                if (presupuesto.estatus != "Aprobado"):
+                    return Response("El presupuesto enviado ya se encuentra cerrado, no se puede asociar factura.", status=status.HTTP_400_BAD_REQUEST)
                 etapa = Etapa.objects.get(codigo=cod_eta)
                 if (etapa.facturada is True):
                     return Response("La etapa ya fue facturada.", status=status.HTTP_400_BAD_REQUEST)

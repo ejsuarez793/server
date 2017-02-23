@@ -172,10 +172,10 @@ class ProyectoDetail(APIView):
                         return Response("Debes asignar al menos 1 tecnico al proyecto.", status=status.HTTP_400_BAD_REQUEST)
                     if not etapas:
                         return Response("Debes definir al menos 1 etapa en el proyecto.", status=status.HTTP_400_BAD_REQUEST)
-                elif(s_proyecto.initial_data['accion']=="Culminar"):
+                elif(s_proyecto.initial_data['accion'] == "Culminar"):
                     data['msg'] = "Proyecto culminado exitosamente."
                     for etapa in etapas:
-                        if (etapa.estatus!="Culminado"):
+                        if (etapa.estatus != "Culminado"):
                             return Response("Hay etapas que no han sido culminadas.", status=status.HTTP_400_BAD_REQUEST)
                 else:
                     data['msg'] = "Proyecto editado exitosamente!"
@@ -220,7 +220,7 @@ class ProyectoDetail(APIView):
                         data['msg'] = msg
                         return Response(data, status=status.HTTP_200_OK)
                 else:
-                    return Response("El estado del proyecto no permite realizar dicha accion.",status=status.HTTP_400_BAD_REQUEST)     
+                    return Response("El estado del proyecto no permite realizar dicha accion.", status=status.HTTP_400_BAD_REQUEST)     
         except Exception as e:
             return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 
@@ -230,6 +230,10 @@ class ProyectoEtapa(APIView):
 
     def post(self, request, pk, format=None):
         try:
+            proyecto = Proyecto.objects.get(codigo=pk)
+            if (proyecto.estatus == "Rechazado" or proyecto.estatus == "Culminado"):
+                return Response("El estado del proyecto no permite crear una etapa.", status=status.HTTP_400_BAD_REQUEST)
+
             s_etapa = EtapaSerializer(data=request.data)
             if(s_etapa.is_valid(raise_exception=True)):
                 s_etapa.save()
@@ -247,11 +251,11 @@ class ProyectoEtapaDetail(APIView):
      def patch(self, request, pk_p,pk_e, format=None):
         try:
             etapa = Etapa.objects.get(codigo=pk_e)
-            s_etapa = EtapaSerializer(etapa,data=request.data)
+            s_etapa = EtapaSerializer(etapa, data=request.data)
             if(s_etapa.is_valid(raise_exception=True)):
                 data = {}
                 actividades = Actividad.objects.filter(codigo_eta=pk_e)
-                if (s_etapa.initial_data['accion']=="Iniciar"):
+                if (s_etapa.initial_data['accion'] == "Iniciar"):
                     etapa = Etapa.objects.get(codigo=pk_e)
                     if (etapa.codigo_rd == None):
                         return Response("El reporte de detalle debe ser completado.", status=status.HTTP_400_BAD_REQUEST)
@@ -381,7 +385,7 @@ class SolicitudAprobar(APIView):
         data = {}
         data['data'] = None
         data['msg'] = "Solicitud de material aprobada exitosamente."
-        return Response(data,status=status.HTTP_200_OK)
+        return Response(data, status=status.HTTP_200_OK)
 
 
 class PresupuestoList(APIView):
@@ -393,6 +397,16 @@ class PresupuestoList(APIView):
                 proyecto = Proyecto.objects.get(codigo=pk)
                 if (proyecto.estatus == "Culminado" or proyecto.estatus == "Rechazado"):
                     return Response("El estado del proyecto no permite solicitar un presupuesto.", status=status.HTTP_400_BAD_REQUEST)
+
+                # revisamos que todos los presupuestos anteriores se encuentren cerrados.
+                presupuestos = Presupuesto.objects.filter(codigo_pro=pk)
+                noCerrado = False
+                for presupuesto in presupuestos:
+                    if (presupuesto.estatus != "Cerrado"):
+                        noCerrado = True
+                if (noCerrado is True):
+                    return Response("Para solicitar otro presupuesto, el anterior debe estar cerrado.", status=status.HTTP_400_BAD_REQUEST)
+
                 s_presupuesto = PresupuestoSerializer(data=request.data)
                 if (s_presupuesto.is_valid(raise_exception=True)):
                     s_presupuesto.save()
@@ -423,12 +437,15 @@ class PresupuestoList(APIView):
 class PresupuestoDetail(APIView):
     permission_classes = [IsAuthenticated, esCoordinadorOesVendedor]
 
-    def patch(self, request, pro_pk, pre_pk, format=None):# este verbo lo usa el coordinador para editar los mat y serv del presupuesto
+    def patch(self, request, pro_pk, pre_pk, format=None):  # este verbo lo usa el coordinador para editar los mat y serv del presupuesto
 
         try:
             with transaction.atomic():
+                proyecto = Proyecto.objects.get(codigo=pro_pk)
+                if (proyecto.estatus == "Rechazado" or proyecto.estatus == "Culminado"):
+                    return Response("El estado del proyecto no permite editar el presupuesto.", status=status.HTTP_400_BAD_REQUEST)
                 presupuesto = Presupuesto.objects.get(codigo=pre_pk)
-                if(presupuesto.estatus != "Aprobado"):
+                if(presupuesto.estatus != "Aprobado" and presupuesto.estatus != "Cerrado"):
                     s_presupuesto = PresupuestoSerializer(presupuesto, data=request.data)
                     if(s_presupuesto.is_valid(raise_exception=True)):
                         s_presupuesto.save()
@@ -450,28 +467,51 @@ class PresupuestoDetail(APIView):
                     data['data'] = request.data
                     data['msg'] = "Presupuesto editado exitosamente."
                 else:
-                    data = {}
-                    data['data'] = request.data
-                    data['msg'] = "Presupuesto ya aprobado no se puede editar."
-                    return Response(data, status=status.HTTP_400_BAD_REQUEST)
+                    return Response("Presupuesto ya aprobado o cerrado, no se puede editar.", status=status.HTTP_400_BAD_REQUEST)
                 return Response(data, status=status.HTTP_200_OK)
         except Exception as e:
             return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 
-    def put(self, request, pro_pk, pre_pk, format=None):#este verbo lo usa el vendedor para editar campos presupuestos
+    def put(self, request, pro_pk, pre_pk, format=None):  # este verbo lo usa el vendedor para editar campos presupuestos
         try:
+
+            if(request.data['estatus'] == "Cerrado"):
+
+                presupuesto = Presupuesto.objects.get(codigo=pre_pk)
+                if (presupuesto.estatus != "Aprobado"):
+                    return Response("Solo se pueden cerrar los presupuestos aprobados.", status=status.HTTP_400_BAD_REQUEST)
+
+                etapas = Etapa.objects.filter(codigo_pro=pro_pk)
+                noCulminadaFacturada = False
+                for etapa in etapas:
+                    if (etapa.estatus != "Culminado" or etapa.facturada is False):
+                        noCulminadaFacturada = True
+                if (noCulminadaFacturada is True):
+                    return Response("No se puede cerrar el presupuesto hay etapas que no han culminado o no se han factudado.", status=status.HTTP_400_BAD_REQUEST)
+
+                presupuesto.estatus = "Cerrado"
+                presupuesto.save()
+                data = {}
+                data['data'] = request.data
+                data['msg'] = "Presupuesto Cerrado exitosamente!"
+                return Response(data, status=status.HTTP_200_OK)
+
+            proyecto = Proyecto.objects.get(codigo=pro_pk)
+            if (proyecto.estatus == "Rechazado" or proyecto.estatus == "Culminado"):
+                return Response("El estado del proyecto no permite editar el presupuesto.", status=status.HTTP_400_BAD_REQUEST)
+
             presupuesto = Presupuesto.objects.get(codigo=pre_pk)
-            if(presupuesto.estatus != "Aprobado"):
+            if(presupuesto.estatus != "Aprobado" and presupuesto.estatus != "Cerrado"):
                 s_presupuesto = PresupuestoSerializer(presupuesto, data=request.data)
                 if (s_presupuesto.is_valid(raise_exception=True)):
                     s_presupuesto.save()
-                    msg = "Presupuesto " +s_presupuesto.validated_data['codigo']+" editado exitosamente!"
+                    msg = "Presupuesto " + s_presupuesto.validated_data['codigo'] + " editado exitosamente!"
                     data = {}
                     data['data'] = s_presupuesto.data
                     data['msg'] = msg
                     return Response(data, status=status.HTTP_200_OK)
             else:
-                return Response("Presupuesto " + presupuesto.codigo+" ya aprobado, no se puede editar", status=status.HTTP_400_BAD_REQUEST)
+                return Response("Presupuesto " + presupuesto.codigo + " ya aprobado o cerrado, no se puede editar", status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 
@@ -529,8 +569,9 @@ class ProyectoTecnicos(APIView):
     def post(self, request, pk, format=None):
         try:
             with transaction.atomic():
-                print(request.data)
+                # print(request.data)
                 proyecto = Proyecto.objects.get(codigo=pk)
+
                 if (proyecto.estatus!="Ejecucion" and proyecto.estatus!="Culminado" and proyecto.estatus!="Rechazado"):
                     Proyecto_tecnico.objects.filter(codigo_pro=pk).delete()
                     for tecnico in request.data:

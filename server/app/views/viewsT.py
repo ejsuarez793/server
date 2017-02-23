@@ -10,7 +10,7 @@ from rest_framework import status
 from django.db import transaction
 
 from app.serializers.serializersT import ReporteInicialSerializer, ReporteDetalleSerializer, ReporteSerializer
-from app.models import Proyecto, Etapa, Presupuesto,Servicio, Servicio_presupuesto, Material_presupuesto, Actividad, Reporte, Reporte_servicio, Movimiento, Material, Material_movimiento, Etapa_tecnico_movimiento, Trabajador, Proyecto_tecnico
+from app.models import Proyecto, Etapa, Presupuesto, Factura, Servicio, Servicio_presupuesto, Material_presupuesto, Actividad, Reporte, Reporte_servicio, Movimiento, Material, Material_movimiento, Etapa_tecnico_movimiento, Trabajador, Proyecto_tecnico
 
 
 def viewsTecnico(arg):
@@ -96,6 +96,9 @@ class EtapaTecnico(APIView):
         eta['servicios'] = []
         eta['materiales'] = []
 
+        materiales_disponibles = []
+        servicios_disponibles = []
+        codigo_presupuesto = ""
         # buscamos las actividades relacionadas a la etapa
         actividades = Actividad.objects.filter(codigo_eta=cod_eta)
         for actividad in actividades:
@@ -106,43 +109,53 @@ class EtapaTecnico(APIView):
             aux_act['completada'] = actividad.completada
             eta['actividades'].append(aux_act)
 
-        # buscamos los servicios presupuestados
-        servicios_presupuestos = []
         presupuestos = Presupuesto.objects.filter(codigo_pro=cod_pro)
         for presupuesto in presupuestos:
             if (presupuesto.estatus == "Aprobado"):
-                servicios_pre = Servicio_presupuesto.objects.filter(codigo_pre=presupuesto.codigo)
-                for servicio in servicios_pre:
-                    aux_s = {}
-                    aux_s['codigo'] = servicio.codigo_ser.codigo
-                    aux_s['cantidad'] = servicio.cantidad
-                    aux_s['desc'] = servicio.codigo_ser.desc
-                    flag = False  # colocamos esta bandera para saber si ya el servicio fue incluido o no
-                    for serv in servicios_presupuestos:
-                        if (serv['codigo'] == aux_s['codigo']):
-                            serv['cantidad'] += aux_s['cantidad']
-                            flag = True  # ya estaba incluido y solo sumamos cantidades
-                    if (flag is False):  # no estba incluido y lo aniadimos al array
-                        servicios_presupuestos.append(aux_s)
+                codigo_presupuesto = presupuesto.codigo
+                break
+
+        # print(codigo_presupuesto)
+
+        # buscamos los servicios presupuestados
+        servicios_presupuestos = []
+        servicios_pre = Servicio_presupuesto.objects.filter(codigo_pre=codigo_presupuesto)
+        for servicio in servicios_pre:
+            aux_s = {}
+            aux_s['codigo'] = servicio.codigo_ser.codigo
+            aux_s['cantidad'] = servicio.cantidad
+            aux_s['desc'] = servicio.codigo_ser.desc
+            servicios_presupuestos.append(aux_s)
         # print(servicios_presupuestos)
 
         # buscamos los servicios usados en los reportes
         servicios_reportes = []
-        reportes = Reporte.objects.filter(codigo_eta=cod_eta)
-        for reporte in reportes:
-            rep_serv = Reporte_servicio.objects.filter(codigo_rep=reporte.codigo)
-            for servicio in rep_serv:
-                aux_s = {}
-                aux_s['codigo'] = servicio.codigo_ser.codigo
-                aux_s['cantidad'] = servicio.cantidad
-                aux_s['desc'] = servicio.codigo_ser.desc
-                flag = False  # colocamos esta bandera para saber si ya el servicio fue incluido o no
-                for serv in servicios_reportes:
-                    if (serv['codigo'] == aux_s['codigo']):
-                        serv['cantidad'] += aux_s['cantidad']
-                        flag = True  # ya estaba incluido entonces solo sumamos cantidades
-                if (flag is False):  # no estaba incluido y lo aniadimos al array
-                    servicios_reportes.append(aux_s)
+        etapas = Etapa.objects.filter(codigo_pro=cod_pro)  # buscamos todas las etapas y sus reportes
+        for etapa in etapas:
+            considerar = False
+            if (etapa.facturada is False):
+                considerar = True
+            else:
+                factura = Factura.objects.get(codigo_eta=etapa.codigo)
+                if (factura.codigo_pre.codigo == codigo_presupuesto):
+                    considerar = True
+            # print(considerar)
+            if (considerar is True):
+                reportes = Reporte.objects.filter(codigo_eta=cod_eta)
+                for reporte in reportes:
+                    rep_serv = Reporte_servicio.objects.filter(codigo_rep=reporte.codigo)
+                    for servicio in rep_serv:
+                        aux_s = {}
+                        aux_s['codigo'] = servicio.codigo_ser.codigo
+                        aux_s['cantidad'] = servicio.cantidad
+                        aux_s['desc'] = servicio.codigo_ser.desc
+                        flag = False  # colocamos esta bandera para saber si ya el servicio fue incluido o no
+                        for serv in servicios_reportes:
+                            if (serv['codigo'] == aux_s['codigo']):
+                                serv['cantidad'] += aux_s['cantidad']
+                                flag = True  # ya estaba incluido entonces solo sumamos cantidades
+                        if (flag is False):  # no estaba incluido y lo aniadimos al array
+                            servicios_reportes.append(aux_s)
 
         # print(servicios_reportes)
 
@@ -167,49 +180,50 @@ class EtapaTecnico(APIView):
 
         # AHORA BUSCAMOS LOS MATERIALES DISPONIBLES QUE EL TECNICO PUEDE SOLICITAR PARA DICHA ETAPA
         materiales_presupuestos = []
-        for presupuesto in presupuestos:
-            if (presupuesto.estatus == "Aprobado"):
-                mat_pre = Material_presupuesto.objects.filter(codigo_pre=presupuesto.codigo)
-                for material_presupuesto in mat_pre:
-                    aux = {}
-                    aux['codigo'] = material_presupuesto.codigo_mat.codigo
-                    aux['nombre'] = material_presupuesto.codigo_mat.nombre
-                    aux['desc'] = material_presupuesto.codigo_mat.desc
-                    aux['serial'] = material_presupuesto.codigo_mat.serial
-                    aux['cantidad'] = material_presupuesto.cantidad
-                    flag = False  # usamos esta bandera para saber si el material fue aniadido o no
-                    for material in materiales_presupuestos:
-                        if (material['codigo'] == aux['codigo']):
-                            material['cantidad'] += aux['cantidad']
-                            flag = True
-                    if (flag is False):
-                        materiales_presupuestos.append(aux)
+        mat_pre = Material_presupuesto.objects.filter(codigo_pre=codigo_presupuesto)
+        for material in mat_pre:
+            aux_s = {}
+            aux_s['codigo'] = material.codigo_mat.codigo
+            aux_s['cantidad'] = material.cantidad
+            aux_s['desc'] = material.codigo_mat.nombre + " " + material.codigo_mat.desc + " " + material.codigo_mat.marca
+            aux_s['serial'] = material.codigo_mat.serial
+            materiales_presupuestos.append(aux_s)
 
+        # print(materiales_presupuestos)
         # print(materiales_presupuestos)
 
         materiales_usados = []
-        etms = Etapa_tecnico_movimiento.objects.filter(codigo_eta=cod_eta)
-        for etm in etms:
-            if (etm.codigo_mov.completado is True):
-                mm = Material_movimiento.objects.filter(codigo_mov=etm.codigo_mov.codigo)
-                for material in mm:
-                    aux = {}
-                    aux['codigo'] = material.codigo_mat.codigo
-                    aux['nombre'] = material.codigo_mat.nombre
-                    aux['desc'] = material.codigo_mat.desc
-                    aux['serial'] = material.codigo_mat.serial
-                    aux['cantidad'] = material.cantidad
-                    flag = False
-                    if (etm.codigo_mov.tipo == "Egreso"):
-                        aux['cantidad'] = aux['cantidad'] * 1
-                    elif(etm.codigo_mov.tipo == "Retorno"):
-                        aux['cantidad'] = aux['cantidad'] * -1
-                    for mat in materiales_usados:
-                        if (mat['codigo'] == aux['codigo']):
-                            mat['cantidad'] += aux['cantidad']
-                            flag = True
-                    if (flag is False):
-                        materiales_usados.append(aux)
+        for etapa in etapas:
+            considerar = False
+            if (etapa.facturada is False):
+                considerar = True
+            else:
+                factura = Factura.objects.get(codigo_eta=etapa.codigo)
+                if (factura.codigo_pre.codigo == codigo_presupuesto):
+                    considerar = True
+            # print(considerar)
+            if (considerar is True):
+                etms = Etapa_tecnico_movimiento.objects.filter(codigo_eta=etapa.codigo)
+                for etm in etms:
+                    if (etm.codigo_mov.completado is True):
+                        mm = Material_movimiento.objects.filter(codigo_mov=etm.codigo_mov.codigo)
+                        for material in mm:
+                            aux = {}
+                            aux['codigo'] = material.codigo_mat.codigo
+                            aux['desc'] = material.codigo_mat.nombre + " " + material.codigo_mat.desc + " " + material.codigo_mat.marca 
+                            aux['serial'] = material.codigo_mat.serial
+                            aux['cantidad'] = material.cantidad
+                            flag = False
+                            if (etm.codigo_mov.tipo == "Egreso"):
+                                aux['cantidad'] = aux['cantidad'] * 1
+                            elif(etm.codigo_mov.tipo == "Retorno"):
+                                aux['cantidad'] = aux['cantidad'] * -1
+                            for mat in materiales_usados:
+                                if (mat['codigo'] == aux['codigo']):
+                                    mat['cantidad'] += aux['cantidad']
+                                    flag = True
+                            if (flag is False):
+                                materiales_usados.append(aux)
 
         # print(materiales_usados)
         # POR ULTIMO COLOCAMOS EN UN ARRAY LOS MATERIALES DISPONIBLES
@@ -220,7 +234,6 @@ class EtapaTecnico(APIView):
                 if (material_presupuesto['codigo'] == material_usado['codigo']):
                     aux = {}
                     aux['codigo'] = material_presupuesto['codigo']
-                    aux['nombre'] = material_presupuesto['nombre']
                     aux['desc'] = material_presupuesto['desc']
                     aux['serial'] = material_presupuesto['serial']
                     aux['cantidad'] = material_presupuesto['cantidad'] - material_usado['cantidad']

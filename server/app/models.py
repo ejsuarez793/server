@@ -249,6 +249,7 @@ class Presupuesto(models.Model):
     est = (
         ('Preventa', 'Preventa'),
         ('Aprobado', 'Aprobado'),
+        ('Cerrado', 'Cerrado'),
         ('Rechazado', 'Rechazado'),
     )
     codigo = models.CharField(primary_key=True, max_length=20)
@@ -337,7 +338,7 @@ class Factura(models.Model):
         ('Debito', 'Debito'),
         ('Efectivo', 'Efectivo'),
     )
-    nro_factura = models.AutoField(primary_key=True)
+    nro_factura = models.IntegerField(primary_key=True)
     codigo_pre = models.ForeignKey(Presupuesto, on_delete=models.PROTECT)
     codigo_eta = models.OneToOneField(Etapa, on_delete=models.PROTECT)
     nro_control = models.IntegerField(unique=True)
