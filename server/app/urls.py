@@ -3,12 +3,12 @@ from django.conf.urls import url
 from rest_framework.authtoken import views
 
 
-from app.views.viewsA import MaterialList, MaterialDetail, EquipoList, EquipoDetail, ProveedorList, ProveedorDetail, Disponibilidad, MovimientoIngreso, MovimientoEgreso, MovimientoRetorno, ConsultaRango, ValidarMaterial, ValidarProveedor
+from app.views.viewsA import MaterialList, MaterialDetail, ProveedorList, ProveedorDetail, Disponibilidad, MovimientoIngreso, MovimientoEgreso, MovimientoRetorno, ConsultaRango, ValidarMaterial, ValidarProveedor
 from app.views.viewsV import ClienteList, ClienteDetail, ResumenClientes, SolicitudList, ProyectoCausaRechazo, ProyectoEncuesta, FacturaEtapa, FacturaConsultar
 from app.views.viewsC import ProyectoList, ProyectoDetail, ProyectoTecnicos, ReporteProyecto, ProyectoMaterialDesglose, SolicitudAprobar, ProyectoEtapa, ProyectoEtapaDetail, ActividadDetail, PresupuestoList, PresupuestoDetail, Tecnicos, ProcesarSolicitud, ServicioList, ServicioDetail, ProyectoCoordinador
 from app.views.viewsT import ProyectosTecnico, ProyectoTecnico, EtapaTecnico, ActividadTecnico, SolicitudTecnico, ReporteInicial, ReporteDetalle, ReporteTecnico, SolicitudMaterial
 from app.views.viewsAll import ListUsers, ValidarTrabajador, ValidarUsuario, ValidarCliente, CurrentUser, ValidarServicio
-from app.views.viewsAdmin import GestionUsuario, ClaveUsuario
+from app.views.viewsAdmin import GestionUsuario, ClaveUsuario, BorrarElemento
 
 
 
@@ -30,9 +30,9 @@ urlpatterns = [
 
 
 
-    url(r'^ventas/cliente/$', ClienteList.as_view()), # ESTA SE CAMBIO /cliente/ -->> /ventas/cliente/pk
+    url(r'^ventas/cliente/$', ClienteList.as_view()),  # ESTA SE CAMBIO /cliente/ -->> /ventas/cliente/pk
     url(r'^ventas/cliente/(?P<pk>[\w\-]+)/$', ClienteDetail.as_view()), # ESTA SE CAMBIO /clientes/pk/ -->> /ventas/cliente/pk
-    url(r'^ventas/solicitud/$', SolicitudList.as_view()), #ESTA SE CAMBIO /solicitud/ --> /ventas/solicitud/
+    url(r'^ventas/solicitud/$', SolicitudList.as_view()),  #ESTA SE CAMBIO /solicitud/ --> /ventas/solicitud/
     url(r'^ventas/factura/consultar/(?P<cod_eta>[\w\-]+)/(?P<cod_pre>[\w\-]+)/$', FacturaConsultar.as_view()),
     url(r'^ventas/factura/(?P<cod_eta>[\w\-]+)/$', FacturaEtapa.as_view()),
     url(r'^ventas/resumen/$', ResumenClientes.as_view()),
@@ -76,7 +76,7 @@ urlpatterns = [
     url(r'^almacen/material/$', MaterialList.as_view()),   #ESTA SE CAMBIO /material/  ->> /almacen/material/
     url(r'^almacen/material/(?P<pk>[\w\-]+)/$', MaterialDetail.as_view()),  # ESTA SE CAMBIO /material/pk/ -->> /almacen/material/pk
     url(r'^almacen/proveedor/$', ProveedorList.as_view()), #ESTA SE CAMBIO /proveedor/  ->> /almacen/proveedor/
-    url(r'^almacen/proveedor/(?P<pk>[\w\-]+)/$', ProveedorDetail.as_view()),# ESTA SE CAMBIO /proveedor/pk/ -->> /almacen/proveedor/pk
+    url(r'^almacen/proveedor/(?P<pk>[\w\-]+)/$', ProveedorDetail.as_view()), # ESTA SE CAMBIO /proveedor/pk/ -->> /almacen/proveedor/pk
 
    
 
@@ -99,6 +99,7 @@ urlpatterns = [
     url(r'^admin/usuario/$', ListUsers.as_view()),
     url(r'^admin/gestion/(?P<ci>[\w\-]+)/$', GestionUsuario.as_view()),
     url(r'^admin/clave/(?P<ci>[\w\-]+)/$', ClaveUsuario.as_view()),
+    url(r'^admin/borrar/(?P<tipo>[\w\-]+)/(?P<codigo>[\w\-]+)/$', BorrarElemento.as_view()),
 ]
 
 """urlpatterns = [

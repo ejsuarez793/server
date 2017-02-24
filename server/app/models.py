@@ -401,7 +401,7 @@ class Etapa_tecnico_movimiento(models.Model):
 
 
 # aqui se cambio equ
-class Equipo_movimiento(models.Model):
+"""class Equipo_movimiento(models.Model):
     codigo = models.AutoField(primary_key=True)
     codigo_mov = models.ForeignKey(Movimiento, on_delete=models.PROTECT)
     codigo_equ = models.ForeignKey('Equipo', on_delete=models.PROTECT)
@@ -418,4 +418,4 @@ class Equipo(models.Model):
     costo_uso = models.DecimalField(max_digits=30, decimal_places=2)
     cantidad = models.IntegerField()
     serial = models.CharField(max_length=50, unique=True, blank=True, null=True)
-    f_act = models.DateField(auto_now=True)
+    f_act = models.DateField(auto_now=True)"""

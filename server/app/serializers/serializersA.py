@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from app.models import Material, Equipo, Proveedor, Material_proveedor
+from app.models import Material, Proveedor, Material_proveedor #,Equipo
 
 
 def AlmacenistaSerializers(arg):
@@ -9,10 +9,10 @@ def AlmacenistaSerializers(arg):
 
 
 
-class EquipoSerializer(serializers.ModelSerializer):
+"""class EquipoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Equipo
-        fields = '__all__'
+        fields = '__all__'"""
 
 
 class ProveedorSerializer(serializers.ModelSerializer):

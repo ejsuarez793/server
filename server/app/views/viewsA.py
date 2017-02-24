@@ -8,8 +8,8 @@ from rest_framework import generics
 from django.db import transaction
 
 from app.permissions import esAlmacenista
-from app.serializers.serializersA import MaterialSerializer, EquipoSerializer, ProveedorSerializer, MaterialProveedorSerializer
-from app.models import Proyecto, Etapa, Proyecto_tecnico, Material, Equipo, Proveedor, Material_proveedor, Material_movimiento, Etapa_tecnico_movimiento, Movimiento, Trabajador
+from app.serializers.serializersA import MaterialSerializer, ProveedorSerializer, MaterialProveedorSerializer
+from app.models import Proyecto, Etapa, Proyecto_tecnico, Material, Proveedor, Material_proveedor, Material_movimiento, Etapa_tecnico_movimiento, Movimiento, Trabajador
 
 
 def viewsAlmacenista(arg):
@@ -449,7 +449,7 @@ class ValidarProveedor(APIView):
             return Response("Proveedor ya existe.") 
 
 
-class EquipoList(generics.ListCreateAPIView):
+"""class EquipoList(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated, esAlmacenista]
 
     queryset = Equipo.objects.all()
@@ -460,7 +460,7 @@ class EquipoDetail(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated, esAlmacenista]
 
     queryset = Equipo.objects.all().order_by('rif')
-    serializer_class = EquipoSerializer
+    serializer_class = EquipoSerializer"""
 
 
 class ProveedorList(generics.ListCreateAPIView):
