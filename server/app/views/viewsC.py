@@ -231,8 +231,8 @@ class ProyectoEtapa(APIView):
     def post(self, request, pk, format=None):
         try:
             proyecto = Proyecto.objects.get(codigo=pk)
-            if (proyecto.estatus == "Rechazado" or proyecto.estatus == "Culminado"):
-                return Response("El estado del proyecto no permite crear una etapa.", status=status.HTTP_400_BAD_REQUEST)
+            if (proyecto.estatus == "Preventa" or proyecto.estatus == "Rechazado" or proyecto.estatus == "Culminado"):
+                return Response("El estado del proyecto '" + proyecto.estatus +"' no permite crear una etapa.", status=status.HTTP_400_BAD_REQUEST)
 
             s_etapa = EtapaSerializer(data=request.data)
             if(s_etapa.is_valid(raise_exception=True)):
