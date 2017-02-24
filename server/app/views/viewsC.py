@@ -1,5 +1,5 @@
 #from django.contrib.auth.models import User
-from app.models import Trabajador, Solicitud, Servicio,Proyecto, Etapa, Actividad, Reporte_detalle, Reporte, Reporte_servicio, Causa_rechazo, Encuesta, Pregunta, Movimiento, Etapa_tecnico_movimiento, Material_movimiento, Material, Cliente,Reporte_inicial,Presupuesto, Servicio_presupuesto, Material_presupuesto, Proyecto_tecnico
+from app.models import Trabajador, Solicitud, Servicio,Proyecto, Factura, Etapa, Actividad, Reporte_detalle, Reporte, Reporte_servicio, Causa_rechazo, Encuesta, Pregunta, Movimiento, Etapa_tecnico_movimiento, Material_movimiento, Material, Cliente,Reporte_inicial,Presupuesto, Servicio_presupuesto, Material_presupuesto, Proyecto_tecnico
 from app.serializers.serializersAll import TrabajadorSerializer
 from app.serializers.serializersV import ClienteSerializer
 from app.serializers.serializersC import ProyectoSerializer,ProyectoEstatusSerializer, ProyectoSerializerPG, EtapaSerializer, ActividadSerializer, ReporteDetalleSerializer, ReporteSerializer, PresupuestoSerializer, Causa_rechazoSerializer, PreguntaSerializer, EncuestaSerializer, MaterialSerializer, Servicio_presupuestoSerializer, Material_presupuestoSerializer, SolicitudSerializer, SolicitudSerializerAll, ProyectoTecnicoSerializer, ServicioSerializer, ReporteInicialSerializer
@@ -315,62 +315,133 @@ class ProyectoMaterialDesglose(APIView):
 
     def get(self, request, pk, format=None):
         data_desglose = {}
-        data_presupuestos = []
-        data_egresados = []
-        data_retornados = []
+        data_presupuesto = []
+        #data_egresados = []
+        #data_retornados = []
+        data_usados = []
+        data_usados_etapas = []
         aux = {}
+        aux_2 ={}
+        codigo_presupuesto=""
+        materiales_aux = []
 
-        # primero buscamos los materiales que estan en los presupuestos arpobados del proyecto
-        presupuestos = Presupuesto.objects.filter(codigo_pro=pk)
+
+        # primero buscamos los materiales que estan en el presupuesto aprobado del proyecto
+        presupuestos = Presupuesto.objects.filter(codigo_pro=pk).order_by('codigo')
         for presupuesto in presupuestos:
             if (presupuesto.estatus == "Aprobado"):
-                materiales_presupuesto = Material_presupuesto.objects.filter(codigo_pre=presupuesto.codigo)
-                for material_presupuesto in materiales_presupuesto:
-                    aux = {}
-                    aux['codigo_pre'] = presupuesto.codigo
-                    aux['codigo_mat'] = material_presupuesto.codigo_mat.codigo
-                    aux['nombre'] = material_presupuesto.codigo_mat.nombre
-                    aux['desc'] = material_presupuesto.codigo_mat.desc
-                    aux['serial'] = material_presupuesto.codigo_mat.serial
-                    aux['marca'] = material_presupuesto.codigo_mat.marca
-                    aux['cant'] = material_presupuesto.cantidad
-                    data_presupuestos.append(aux)
+                codigo_presupuesto = presupuesto.codigo
+                break
 
-        """print("presupuestos materiales")
-        print(data_presupuestos)"""
+        materiales_presupuesto = Material_presupuesto.objects.filter(codigo_pre=codigo_presupuesto)
+        for material_presupuesto in materiales_presupuesto:
+            aux = {}
+            # aux['codigo_pre'] = presupuesto.codigo
+            aux['codigo'] = material_presupuesto.codigo_mat.codigo
+            aux['nombre'] = material_presupuesto.codigo_mat.nombre
+            aux['desc'] = material_presupuesto.codigo_mat.desc
+            aux['serial'] = material_presupuesto.codigo_mat.serial
+            aux['marca'] = material_presupuesto.codigo_mat.marca
+            aux['cantidad'] = material_presupuesto.cantidad
+            data_presupuesto.append(aux)
 
-        # luego buscamos los materiales que han salido a una etapa del proyecto
-        aux = {}
-        etapas = Etapa.objects.filter(codigo_pro=pk)
+        # luego buscamos los materiales usados por etapas, y si la etapa se considera que esta bajo el presupuesto
+        # actual, se considera para restar sus elementos posteriormente
+        etapas = Etapa.objects.filter(codigo_pro=pk).order_by('codigo')
         for etapa in etapas:
+            aux = {}
+            aux['letra_eta'] = etapa.letra
+            aux['nombre_eta'] = etapa.nombre
+            aux['materiales'] = []
+
+            # aqui consideramos si los materiales de la etapa entran para restar los disponibles segun presupuesto actual
+            considerar = False
+            if (etapa.facturada is False):
+                considerar = True
+            else:
+                factura = Factura.objects.get(codigo_eta=etapa.codigo)
+                if (factura.codigo_pre.codigo == codigo_presupuesto):
+                    considerar = True
+            aux['considerar'] = considerar
+
             etms = Etapa_tecnico_movimiento.objects.filter(codigo_eta=etapa.codigo)
             for etm in etms:
                 if (etm.codigo_mov.completado is True):
                     mm = Material_movimiento.objects.filter(codigo_mov=etm.codigo_mov.codigo)
                     for material in mm:
-                        aux = {}
-                        aux['codigo_mov'] = etm.codigo_mov.codigo
-                        aux['tipo_mov'] = etm.codigo_mov.tipo
-                        aux['codigo_mat'] = material.codigo_mat.codigo
-                        aux['nombre'] = material.codigo_mat.nombre
-                        aux['desc'] = material.codigo_mat.desc
-                        aux['serial'] = material.codigo_mat.serial
-                        aux['marca'] = material.codigo_mat.marca
-                        aux['cant'] = material.cantidad
-                        aux['codigo_eta'] = etapa.codigo
-                        aux['nombre_eta'] = etapa.nombre
-                        aux['letra_eta'] = etapa.letra
-                        if (etm.codigo_mov.tipo == "Egreso"):
-                            data_egresados.append(aux)
-                        elif(etm.codigo_mov.tipo == "Retorno"):
-                            data_retornados.append(aux)
-        """print("materiales egresados")
-        print(data_egresados)
-        print("materiales retornados")
-        print(data_retornados)"""
-        data_desglose['presupuestos'] = data_presupuestos
-        data_desglose['egresados'] = data_egresados
-        data_desglose['retornados'] = data_retornados
+                        aux_2 = {}
+                        aux_2['codigo'] = material.codigo_mat.codigo
+                        aux_2['nombre'] = material.codigo_mat.nombre
+                        aux_2['desc'] = material.codigo_mat.desc
+                        aux_2['marca'] = material.codigo_mat.marca
+                        aux_2['serial'] = material.codigo_mat.serial
+                        aux_2['cantidad'] = material.cantidad
+                        if (etm.codigo_mov.tipo == "Retorno"):  # aqui retorno es negativo ya que queremos que se muestren los usados como positivos
+                            aux_2['cantidad'] *= -1             # y los retornados restan su valor a los usados
+
+                        yaAgregado = False
+                        for material_agregado in aux['materiales']:
+                            if (material_agregado['codigo'] == aux_2['codigo']):
+                                yaAgregado = True
+                                material_agregado['cantidad'] += aux_2['cantidad']
+
+                        if (yaAgregado is False):
+                            aux['materiales'].append(aux_2)
+            if not aux['materiales']:
+                aux['tiene_materiales'] = False
+            else:
+                aux['tiene_materiales'] = True
+            data_usados_etapas.append(aux)
+
+        # ahora sumamos todos los materiales usados por etapas, y si las etapas estan bajo consideracion del presupuesto
+        # actual se le restan a los materiales disponibles actuales, es decir, si son materiales que se han usado
+        # del presupuesto que esta disponible actualmente, se le deben restar las cantidades usadas a las disp.
+        for etapa in data_usados_etapas:
+            for material in etapa['materiales']:
+
+                if(etapa['considerar'] is True):
+                    for material_disponible in data_presupuesto:
+                        if (material_disponible['codigo'] == material['codigo']):
+                            material_disponible['cantidad'] -= material['cantidad']
+
+                yaAgregado = False
+                for material_agregado in data_usados:
+                    if (material_agregado['codigo'] == material['codigo']):
+                        material_agregado['cantidad'] += material['cantidad']
+                        yaAgregado = True
+                if (yaAgregado is False):
+                    data_usados.append(material)
+
+
+        # print(data_presupuesto)
+        # print(data_usados_etapas)
+        # print(data_usados)
+
+        # por ultimo eliminamos las cantidades en 0
+        data_desglose['disponibles'] = []
+        data_desglose['usados'] = []
+        data_desglose['etapas'] = []
+
+        for material in data_presupuesto:
+            if (material['cantidad'] != 0):
+                data_desglose['disponibles'].append(material)
+
+        for material in data_usados:
+            if (material['cantidad'] != 0):
+                data_desglose['usados'].append(material)
+
+        for etapa in data_usados_etapas:
+            aux = {}
+            aux['letra_eta'] = etapa['letra_eta']
+            aux['nombre_eta'] = etapa['nombre_eta']
+            aux['considerar'] = etapa['considerar']
+            aux['tiene_materiales'] = etapa['tiene_materiales']
+            aux['materiales'] = []
+            for material in etapa['materiales']:
+                if(material['cantidad'] != 0):
+                    aux['materiales'].append(material)
+            data_desglose['etapas'].append(aux)
+
         # print(data_desglose)
         return Response(data_desglose, status=status.HTTP_200_OK)
 
