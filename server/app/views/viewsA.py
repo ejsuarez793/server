@@ -361,9 +361,9 @@ class MovimientoRetorno(APIView):
 class ConsultaRango(APIView):
     def get(self, request, tipo, desde, hasta, format=None):
         try:
-            print(desde)
-            print(hasta)
-            print(tipo)
+            #print(desde)
+            #print(hasta)
+            #print(tipo)
             if(tipo == "rango"):
                 movimientos = Movimiento.objects.filter(fecha__range=(desde, hasta)).order_by('codigo')
             elif(tipo == "mes"):
@@ -417,7 +417,7 @@ class ConsultaRango(APIView):
 
             data = {}
             data['data'] = movs
-            if not movs['movimientos']:
+            if not data['data']['movimientos']:
                 msg = "La consulta no dio resultados."
             else:
                 msg = "Consulta existosa."
