@@ -246,9 +246,9 @@ class FacturaConsultar(APIView):
                     cod_pre = factura.codigo_pre.codigo
                     detalle['nombre_cliente'] = factura.codigo_eta.codigo_pro.codigo_s.rif_c.nombre
                     detalle['rif_cliente'] = factura.codigo_eta.codigo_pro.codigo_s.rif_c.rif
-                    detalle['tlf1_cc'] = factura.codigo_eta.codigo_pro.codigo_s.rif_c.tlf1
-                    detalle['tlf2_cc'] = factura.codigo_eta.codigo_pro.codigo_s.rif_c.tlf2
-                    detalle['fax_c'] = factura.codigo_eta.codigo_pro.codigo_s.rif_c.dire
+                    detalle['tlf1_c'] = factura.codigo_eta.codigo_pro.codigo_s.rif_c.tlf1
+                    detalle['tlf2_c'] = factura.codigo_eta.codigo_pro.codigo_s.rif_c.tlf2
+                    detalle['fax_c'] = factura.codigo_eta.codigo_pro.codigo_s.rif_c.fax
                     detalle['dire_c'] = factura.codigo_eta.codigo_pro.codigo_s.rif_c.dire
                     detalle['nro_factura'] = factura.nro_factura
                     detalle['nro_control'] = factura.nro_control
@@ -268,6 +268,7 @@ class FacturaConsultar(APIView):
                     detalle['nombre_pro'] = factura.codigo_eta.codigo_pro.nombre
                     detalle['letra_eta'] = factura.codigo_eta.letra
                     detalle['codigo_eta'] = factura.codigo_eta.codigo
+                    detalle['nombre_eta'] = factura.codigo_eta.nombre
                     detalle['facturada'] = factura.codigo_eta.facturada
 
                 elementos_presupuesto = []
@@ -276,7 +277,9 @@ class FacturaConsultar(APIView):
                 for material in materiales_presupuesto:
                     aux = {}
                     aux['codigo'] = material.codigo_mat.codigo
-                    aux['desc'] = material.codigo_mat.nombre + " " + material.codigo_mat.desc + " " + material.codigo_mat.marca
+                    aux['desc'] = (material.codigo_mat.nombre + " " + material.codigo_mat.desc + " " +
+                                   material.codigo_mat.marca + " (" + material.codigo_mat.presen + " )")
+                    aux['serial'] = material.codigo_mat.serial
                     aux['precio_unitario'] = material.precio_venta
                     aux['cantidad'] = material.cantidad
                     elementos_presupuesto.append(aux)
@@ -312,7 +315,9 @@ class FacturaConsultar(APIView):
                         for material in mm:
                             aux = {}
                             aux['codigo'] = material.codigo_mat.codigo
-                            aux['desc'] = material.codigo_mat.desc
+                            aux['desc'] = (material.codigo_mat.nombre + " " + material.codigo_mat.desc + " " +
+                                           material.codigo_mat.marca + " (" + material.codigo_mat.presen + " ) ")
+                            aux['serial'] = material.codigo_mat.serial
                             aux['cantidad'] = material.cantidad
                             if (etm.codigo_mov.tipo == "Egreso"):
                                 egresados.append(aux)

@@ -250,7 +250,7 @@ class EtapaTecnico(APIView):
 
 
 class ReporteInicial(APIView):
-    permission_classes = [IsAuthenticated, esTecnico] #,esTecnico]
+    permission_classes = [IsAuthenticated, esTecnico]
 
     def post(self, request, pk, format=None):
         with transaction.atomic():
@@ -272,10 +272,15 @@ class ReporteInicial(APIView):
 
 
 class ActividadTecnico(APIView):
-    permission_classes = [IsAuthenticated, esTecnico] #,esTecnico]
+    permission_classes = [IsAuthenticated, esTecnico]
 
     def patch(self, request, cod_pro, cod_eta, format=None):
         with transaction.atomic():
+
+            proyecto = Proyecto.objects.get(codigo=cod_pro)
+            if (proyecto.estatus != "Ejecucion"):
+                return Response("El proyecto debe estar en ejecucion para completar las actividades.", status=status.HTTP_400_BAD_REQUEST)
+
             actividades = request.data
             for actividad in actividades:
                 act = Actividad.objects.get(codigo=actividad['codigo'])
@@ -292,7 +297,15 @@ class ReporteDetalle(APIView):
 
     def post(self, request, pk_p, pk_e, format=None):
         try:
+
+            proyecto = Proyecto.objects.get(codigo=pk_p)
+            if (proyecto.estatus != "Ejecucion"):
+                return Response("El proyecto debe estar en ejecucion para completar el reporte de detalle.", status=status.HTTP_400_BAD_REQUEST)
+
             etapa = Etapa.objects.get(codigo=pk_e)
+            if (etapa.estatus != "Ejecucion"):
+                    return Response("Solo las etapas en ejecucion pueden completar el reporte de detalle.", status=status.HTTP_400_BAD_REQUEST)
+
             if (etapa.codigo_rd is None):
                 reporte_detalle = ReporteDetalleSerializer(data=request.data)
                 if (reporte_detalle.is_valid(raise_exception=True)):
@@ -315,6 +328,11 @@ class ReporteTecnico(APIView):
     def post(self, request, codigo_pro, codigo_eta, format=None):
         try:
             with transaction.atomic():
+
+                proyecto = Proyecto.objects.get(codigo=codigo_pro)
+                if (proyecto.estatus != "Ejecucion"):
+                    return Response("El proyecto debe estar en ejecucion para enviar reportes.", status=status.HTTP_400_BAD_REQUEST)
+
                 if (request.data['tipo'] != "Avance" and request.data['servicios']):
                     return Response("Solo los reportes de tipo 'Avance' pueden tener servicios.", status=status.HTTP_400_BAD_REQUEST)
                 etapa = Etapa.objects.get(codigo=codigo_eta)
@@ -346,8 +364,13 @@ class SolicitudMaterial(APIView):
     def post(self, request, codigo_pro, codigo_eta, format=None):
         try:
             with transaction.atomic():
+
+                proyecto = Proyecto.objects.get(codigo=codigo_pro)
+                if (proyecto.estatus != "Ejecucion"):
+                    return Response("El proyecto debe estar en ejecucion para solicitar materiales.", status=status.HTTP_400_BAD_REQUEST)
+
                 etapa = Etapa.objects.get(codigo=codigo_eta)
-                if (etapa.estatus != "Culminado"):
+                if (etapa.estatus == "Ejecucion"):
                     movimiento = Movimiento.objects.create(tipo="Egreso")
                     tecnico = Trabajador.objects.get(ci=request.data['ci_tecnico'])
                     for material in request.data['materiales']:
@@ -361,6 +384,6 @@ class SolicitudMaterial(APIView):
                     data['msg'] = "Solicitud enviada exitosamente!"
                     return Response(data, status=status.HTTP_200_OK)
                 else:
-                    return Response("Etapa ya fue culminada.", status=status.HTTP_400_BAD_REQUEST)
+                    return Response("Etapa debe estar en ejecucion para solicitar materiales.", status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response(str(e), status=status.HTTP_400_BAD_REQUEST)

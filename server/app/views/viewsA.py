@@ -9,7 +9,7 @@ from django.db import transaction
 
 from app.permissions import esAlmacenista
 from app.serializers.serializersA import MaterialSerializer, ProveedorSerializer, MaterialProveedorSerializer
-from app.models import Proyecto, Etapa, Proyecto_tecnico, Material, Proveedor, Material_proveedor, Material_movimiento, Etapa_tecnico_movimiento, Movimiento, Trabajador
+from app.models import Proyecto, Presupuesto, Factura, Etapa, Proyecto_tecnico, Material, Proveedor, Material_proveedor, Material_movimiento, Etapa_tecnico_movimiento, Movimiento, Trabajador
 
 
 def viewsAlmacenista(arg):
@@ -106,6 +106,9 @@ class Disponibilidad(APIView):
                     aux_2['codigo_mat'] = material_solicitud.codigo_mat.codigo
                     aux_2['nombre_mat'] = material_solicitud.codigo_mat.nombre
                     aux_2['desc_mat'] = material_solicitud.codigo_mat.desc
+                    aux_2['serial_mat'] = material_solicitud.codigo_mat.serial
+                    aux_2['marca_mat'] = material_solicitud.codigo_mat.marca
+                    aux_2['presen_mat'] = material_solicitud.codigo_mat.presen
                     aux_2['cantidad_solicitada'] = material_solicitud.cantidad
                     aux_2['cantidad_inventario'] = mi.cantidad
                     disponible = False
@@ -161,13 +164,13 @@ class MovimientoEgreso(APIView):
                 aux_2 = {}
                 aux_2['codigo'] = material.codigo_mat.codigo
                 aux_2['nombre'] = material.codigo_mat.nombre
-                aux_2['desc'] = material.codigo_mat.desc
+                aux_2['desc'] = material.codigo_mat.desc + " " + material.codigo_mat.marca + " (" + material.codigo_mat.presen + ")"
                 aux_2['serial'] = material.codigo_mat.serial
                 aux_2['cantidad'] = material.cantidad
                 aux['materiales'].append(aux_2)
 
             return Response(aux, status=status.HTTP_200_OK)
-        except Movimiento.DoesNotExist:
+        except (Movimiento.DoesNotExist, Etapa_tecnico_movimiento.DoesNotExist):
             return Response("No existe una solicitud de egreso con ese codigo: " + codigo_sol, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
@@ -185,7 +188,7 @@ class MovimientoEgreso(APIView):
                         print(mat.cantidad)
                     movimiento.completado = True
                     movimiento.fecha = request.data['fecha']
-                    movimiento.ci_almace = Trabajador.objects.get(ci=request.data['ci_almacenista'])
+                    movimiento.ci_almace = Trabajador.objects.get(ci=request.data['ci_almace'])
                     movimiento.tipo = request.data['tipo']
                     movimiento.save()
                     data = {}
@@ -213,7 +216,7 @@ class MovimientoIngreso(APIView):
                 aux = {}
                 aux['codigo'] = material.codigo
                 aux['nombre'] = material.nombre
-                aux['desc'] = material.desc
+                aux['desc'] = material.desc + " " + material.marca + " (" + material.presen + ")"
                 aux['serial'] = material.serial
                 aux['cantidad'] = material.cantidad
                 if (aux['serial'] is not None and aux['cantidad'] == 0):  # si el material tiene serial, y solo si la cantidad
@@ -282,40 +285,65 @@ class MovimientoRetorno(APIView):
         try:
             data = {}
             proyecto = Proyecto.objects.get(codigo=codigo_pro)
+            if (proyecto.estatus != "Ejecucion"):
+                return Response("El estado del proyecto '" + proyecto.estatus + "' no permite realizar el retorno.", status=status.HTTP_400_BAD_REQUEST)
             data['codigo_pro'] = proyecto.codigo
             data['nombre_pro'] = proyecto.nombre
             data['etapas'] = []
             data['tecnicos'] = []
             data['materiales'] = []
-            etapas = Etapa.objects.filter(codigo_pro=codigo_pro)
-            for etapa in etapas:
-                aux = {}
-                aux['codigo_eta'] = etapa.codigo
-                aux['nombre_eta'] = etapa.nombre
-                aux['letra_eta'] = etapa.letra
-                data['etapas'].append(aux)
-                etms = Etapa_tecnico_movimiento.objects.filter(codigo_eta=etapa.codigo)
-                for etm in etms:
-                    if (etm.codigo_mov.completado is True and etm.codigo_mov.tipo == "Egreso"):
-                        mm = Material_movimiento.objects.filter(codigo_mov=etm.codigo_mov.codigo)
-                        for material in mm:
-                            aux = {}
-                            aux['codigo'] = material.codigo_mat.codigo
-                            aux['nombre'] = material.codigo_mat.nombre
-                            aux['desc'] = material.codigo_mat.desc
-                            aux['serial'] = material.codigo_mat.serial
-                            aux['cantidad'] = material.cantidad
-                            data['materiales'].append(aux)
+            codigo_presupuesto = ""
 
-                for etm in etms:
-                    if (etm.codigo_mov.completado is True and etm.codigo_mov.tipo == "Retorno"):
-                        mm = Material_movimiento.objects.filter(codigo_mov=etm.codigo_mov.codigo)
-                        for material in mm:
-                            for mat_egresado in data['materiales']:
-                                if (mat_egresado['codigo'] == material.codigo_mat.codigo):
-                                    mat_egresado['cantidad'] -= material.cantidad
-                                    if (mat_egresado['cantidad'] == 0):
-                                        data['materiales'].remove(mat_egresado)
+            # primero buscamos los materiales que estan en el presupuesto aprobado del proyecto
+            presupuestos = Presupuesto.objects.filter(codigo_pro=codigo_pro).order_by('codigo')
+            for presupuesto in presupuestos:
+                if (presupuesto.estatus == "Aprobado"):
+                    codigo_presupuesto = presupuesto.codigo
+                    break
+
+            if (codigo_presupuesto == ""):
+                return Response("Los presupuestos del proyecto se encuentran cerrados, no se puede devolver material.", status=status.HTTP_400_BAD_REQUEST)
+
+            etapas = Etapa.objects.filter(codigo_pro=codigo_pro)
+
+            # chequeamos si todas las etapas del proyecto han sido facturadas, porque si es asi no se puede devolver material
+            sinFacturar = False
+            for etapa in etapas:
+                if (etapa.facturada is False):
+                    sinFacturar = True
+            if(sinFacturar is False):
+                return Response("Todas las etapas del proyecto han sido facturadas no se puede devolver material.", status=status.HTTP_400_BAD_REQUEST)
+
+            for etapa in etapas:
+                if (etapa.facturada is False):
+                    aux = {}
+                    aux['codigo_eta'] = etapa.codigo
+                    aux['nombre_eta'] = etapa.nombre
+                    aux['letra_eta'] = etapa.letra
+                    data['etapas'].append(aux)
+
+                    etms = Etapa_tecnico_movimiento.objects.filter(codigo_eta=etapa.codigo)
+                    for etm in etms:
+                        if (etm.codigo_mov.completado is True and etm.codigo_mov.tipo == "Egreso"):
+                            mm = Material_movimiento.objects.filter(codigo_mov=etm.codigo_mov.codigo)
+                            for material in mm:
+                                aux = {}
+                                aux['codigo'] = material.codigo_mat.codigo
+                                aux['nombre'] = material.codigo_mat.nombre
+                                aux['desc'] = material.codigo_mat.desc + " " + material.codigo_mat.marca + " (" + material.codigo_mat.presen + ")"
+                                aux['serial'] = material.codigo_mat.serial
+                                aux['cantidad'] = material.cantidad
+                                data['materiales'].append(aux)
+
+                    for etm in etms:
+                        if (etm.codigo_mov.completado is True and etm.codigo_mov.tipo == "Retorno"):
+                            mm = Material_movimiento.objects.filter(codigo_mov=etm.codigo_mov.codigo)
+                            for material in mm:
+                                for mat_egresado in data['materiales']:
+                                    if (mat_egresado['codigo'] == material.codigo_mat.codigo):
+                                        mat_egresado['cantidad'] -= material.cantidad
+                                        if (mat_egresado['cantidad'] == 0):
+                                            data['materiales'].remove(mat_egresado)
 
             tecnicos = Proyecto_tecnico.objects.filter(codigo_pro=codigo_pro)
             for tecnico in tecnicos:
@@ -334,6 +362,14 @@ class MovimientoRetorno(APIView):
             with transaction.atomic():
                 if not request.data['materiales']:
                     return Response("No se ha incluido ningun material en el retorno, favor seleccionar alguno(s).", status=status.HTTP_400_BAD_REQUEST)
+
+                proyecto = Proyecto.objects.get(codigo=codigo_pro)
+                if (proyecto.estatus != "Ejecucion"):
+                    return Response("El estado del proyecto '" + str(proyecto.estatus) + "' no permite realizar el retorno", status=status.HTTP_400_BAD_REQUEST)
+
+                etapa = Etapa.objects.get(codigo=request.data['codigo_eta'])
+                if (etapa.estatus != "Ejecucion"):
+                    return Response("El estado de la etapa '" + str(proyecto.estatus) + "' no permite realizar el retorno", status=status.HTTP_400_BAD_REQUEST)
 
                 movimiento = Movimiento.objects.create()
                 movimiento.ci_almace = Trabajador.objects.get(ci=request.data['ci_almace'])
@@ -361,9 +397,9 @@ class MovimientoRetorno(APIView):
 class ConsultaRango(APIView):
     def get(self, request, tipo, desde, hasta, format=None):
         try:
-            #print(desde)
-            #print(hasta)
-            #print(tipo)
+            # print(desde)
+            # print(hasta)
+            # print(tipo)
             if(tipo == "rango"):
                 movimientos = Movimiento.objects.filter(fecha__range=(desde, hasta)).order_by('codigo')
             elif(tipo == "mes"):
@@ -388,7 +424,7 @@ class ConsultaRango(APIView):
                         aux_2 = {}
                         aux_2['codigo'] = material.codigo_mat.codigo
                         aux_2['nombre'] = material.codigo_mat.nombre
-                        aux_2['desc'] = material.codigo_mat.desc
+                        aux_2['desc'] = material.codigo_mat.desc + " " + material.codigo_mat.marca + " (" + material.codigo_mat.presen + ")"
                         aux_2['serial'] = material.codigo_mat.serial
                         aux_2['cantidad'] = material.cantidad
                         aux['materiales'].append(aux_2)

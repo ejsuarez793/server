@@ -66,7 +66,7 @@ class ProyectoDetail(APIView):
             for material in presupuesto['materiales']:
                 mat = Material.objects.get(codigo=material['codigo_mat'])
                 s_mat = MaterialSerializer(mat)
-                material['desc'] = s_mat.data['nombre']+ " "+ s_mat.data['desc'] + " "+s_mat.data['marca']
+                material['desc'] = s_mat.data['nombre'] + " " + s_mat.data['desc'] + " " + s_mat.data['marca'] + " (" + s_mat.data['presen'] + ")"
 
         proyecto = s_proyecto.data
         proyecto['cliente'] = s_cliente.data
@@ -117,7 +117,6 @@ class ProyectoDetail(APIView):
                     etapa['actividades'] = s_actividades.data
 
                     etms = Etapa_tecnico_movimiento.objects.filter(codigo_eta=etapa['codigo']).order_by('codigo')
-                    
                     for etm in etms:
                         if (etm.codigo_mov.tipo == "Egreso"):
                             aux = {}
@@ -136,6 +135,9 @@ class ProyectoDetail(APIView):
                                 aux_2['codigo_mat'] = material.codigo_mat.codigo
                                 aux_2['nombre_mat'] = material.codigo_mat.nombre
                                 aux_2['desc_mat'] = material.codigo_mat.desc
+                                aux_2['marca_mat'] = material.codigo_mat.marca
+                                aux_2['presen_mat'] = material.codigo_mat.presen
+                                aux_2['serial_mat'] = material.codigo_mat.serial
                                 aux_2['cant'] = material.cantidad
                                 aux['materiales'].append(aux_2)
                             solicitudes.append(aux)
@@ -161,6 +163,10 @@ class ProyectoDetail(APIView):
     def patch(self, request, pk, format=None):
         try:
             proyecto = Proyecto.objects.get(codigo=pk)
+
+            if (proyecto.codigo_ri is None and request.data['accion'] == "Iniciar"):
+                return Response("Se debe completar el reporte inicial para iniciar el proyecto", status=status.HTTP_400_BAD_REQUEST)
+
             s_proyecto = ProyectoSerializerPG(proyecto, data=request.data)
             if (s_proyecto.is_valid(raise_exception=True)):
                 data = {}
@@ -256,6 +262,9 @@ class ProyectoEtapaDetail(APIView):
                 data = {}
                 actividades = Actividad.objects.filter(codigo_eta=pk_e)
                 if (s_etapa.initial_data['accion'] == "Iniciar"):
+                    proyecto = Proyecto.objects.get(codigo=pk_p)
+                    if (proyecto.estatus != "Ejecucion"):
+                        return Response("El proyecto debe estar en ejecucion para iniciar etapa.", status=status.HTTP_400_BAD_REQUEST)
                     etapa = Etapa.objects.get(codigo=pk_e)
                     if (etapa.codigo_rd == None):
                         return Response("El reporte de detalle debe ser completado.", status=status.HTTP_400_BAD_REQUEST)
@@ -342,6 +351,7 @@ class ProyectoMaterialDesglose(APIView):
             aux['desc'] = material_presupuesto.codigo_mat.desc
             aux['serial'] = material_presupuesto.codigo_mat.serial
             aux['marca'] = material_presupuesto.codigo_mat.marca
+            aux['presen'] = material_presupuesto.codigo_mat.presen
             aux['cantidad'] = material_presupuesto.cantidad
             data_presupuesto.append(aux)
 
@@ -352,6 +362,7 @@ class ProyectoMaterialDesglose(APIView):
             aux = {}
             aux['letra_eta'] = etapa.letra
             aux['nombre_eta'] = etapa.nombre
+            aux['codigo_eta'] = etapa.codigo
             aux['materiales'] = []
 
             # aqui consideramos si los materiales de la etapa entran para restar los disponibles segun presupuesto actual
@@ -375,6 +386,7 @@ class ProyectoMaterialDesglose(APIView):
                         aux_2['desc'] = material.codigo_mat.desc
                         aux_2['marca'] = material.codigo_mat.marca
                         aux_2['serial'] = material.codigo_mat.serial
+                        aux_2['presen'] = material.codigo_mat.presen
                         aux_2['cantidad'] = material.cantidad
                         if (etm.codigo_mov.tipo == "Retorno"):  # aqui retorno es negativo ya que queremos que se muestren los usados como positivos
                             aux_2['cantidad'] *= -1             # y los retornados restan su valor a los usados
@@ -558,7 +570,7 @@ class PresupuestoDetail(APIView):
                     if (etapa.estatus != "Culminado" or etapa.facturada is False):
                         noCulminadaFacturada = True
                 if (noCulminadaFacturada is True):
-                    return Response("No se puede cerrar el presupuesto hay etapas que no han culminado o no se han factudado.", status=status.HTTP_400_BAD_REQUEST)
+                    return Response("No se puede cerrar el presupuesto hay etapas que no han culminado o no se han facturado.", status=status.HTTP_400_BAD_REQUEST)
 
                 presupuesto.estatus = "Cerrado"
                 presupuesto.save()
