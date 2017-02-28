@@ -205,25 +205,25 @@ class EtapaTecnico(APIView):
             if (considerar is True):
                 etms = Etapa_tecnico_movimiento.objects.filter(codigo_eta=etapa.codigo)
                 for etm in etms:
-                    if (etm.codigo_mov.completado is True):
-                        mm = Material_movimiento.objects.filter(codigo_mov=etm.codigo_mov.codigo)
-                        for material in mm:
-                            aux = {}
-                            aux['codigo'] = material.codigo_mat.codigo
-                            aux['desc'] = material.codigo_mat.nombre + " " + material.codigo_mat.desc + " " + material.codigo_mat.marca 
-                            aux['serial'] = material.codigo_mat.serial
-                            aux['cantidad'] = material.cantidad
-                            flag = False
-                            if (etm.codigo_mov.tipo == "Egreso"):
-                                aux['cantidad'] = aux['cantidad'] * 1
-                            elif(etm.codigo_mov.tipo == "Retorno"):
-                                aux['cantidad'] = aux['cantidad'] * -1
-                            for mat in materiales_usados:
-                                if (mat['codigo'] == aux['codigo']):
-                                    mat['cantidad'] += aux['cantidad']
-                                    flag = True
-                            if (flag is False):
-                                materiales_usados.append(aux)
+                    #if (etm.codigo_mov.completado is True):
+                    mm = Material_movimiento.objects.filter(codigo_mov=etm.codigo_mov.codigo)
+                    for material in mm:
+                        aux = {}
+                        aux['codigo'] = material.codigo_mat.codigo
+                        aux['desc'] = material.codigo_mat.nombre + " " + material.codigo_mat.desc + " " + material.codigo_mat.marca 
+                        aux['serial'] = material.codigo_mat.serial
+                        aux['cantidad'] = material.cantidad
+                        flag = False
+                        if (etm.codigo_mov.tipo == "Egreso"):
+                            aux['cantidad'] = aux['cantidad'] * 1
+                        elif(etm.codigo_mov.tipo == "Retorno"):
+                            aux['cantidad'] = aux['cantidad'] * -1
+                        for mat in materiales_usados:
+                            if (mat['codigo'] == aux['codigo']):
+                                mat['cantidad'] += aux['cantidad']
+                                flag = True
+                        if (flag is False):
+                            materiales_usados.append(aux)
 
         # print(materiales_usados)
         # POR ULTIMO COLOCAMOS EN UN ARRAY LOS MATERIALES DISPONIBLES
@@ -303,8 +303,8 @@ class ReporteDetalle(APIView):
                 return Response("El proyecto debe estar en ejecucion para completar el reporte de detalle.", status=status.HTTP_400_BAD_REQUEST)
 
             etapa = Etapa.objects.get(codigo=pk_e)
-            if (etapa.estatus != "Ejecucion"):
-                    return Response("Solo las etapas en ejecucion pueden completar el reporte de detalle.", status=status.HTTP_400_BAD_REQUEST)
+            if (etapa.estatus != "Pendiente"):
+                    return Response("Solo las etapas en estado pendiente puede completar el reporte de detalle.", status=status.HTTP_400_BAD_REQUEST)
 
             if (etapa.codigo_rd is None):
                 reporte_detalle = ReporteDetalleSerializer(data=request.data)

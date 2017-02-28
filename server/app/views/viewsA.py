@@ -98,7 +98,11 @@ class Disponibilidad(APIView):
             tipo=""
             msg=""
             disponible = True
-            aux['materiales'] = []
+            sin_disp = False
+            disp_limit = False
+            aux['materiales_sin_disponibilidad'] = []
+            aux['materiales_disponibilidad_limitada'] = []
+
             for material_solicitud in mm:
                 mi = Material.objects.get(codigo=material_solicitud.codigo_mat.codigo)
                 if (material_solicitud.cantidad > mi.cantidad):
@@ -112,27 +116,47 @@ class Disponibilidad(APIView):
                     aux_2['cantidad_solicitada'] = material_solicitud.cantidad
                     aux_2['cantidad_inventario'] = mi.cantidad
                     disponible = False
-                    aux['materiales'].append(aux_2)
-                    tipo="Sin Disponibilidad"
-                    msg="Sin existencia en inventario de algunos materiales de la solicitud."
+                    aux['materiales_sin_disponibilidad'].append(aux_2)
+                    # tipo="Sin Disponibilidad"
+                    # msg="Sin existencia en inventario de algunos materiales de la solicitud."
                 else:
                     movimientos_materiales = Material_movimiento.objects.filter(codigo_mat=mi.codigo)
                     cont_cantidades = 0
                     for movimiento_material in movimientos_materiales:
-                        if (movimiento_material.codigo_mov.autorizado==True and movimiento_material.codigo_mov.completado==False):
+                        if (movimiento_material.codigo_mov.autorizado is True and movimiento_material.codigo_mov.completado is False):
                             cont_cantidades = cont_cantidades + movimiento_material.cantidad
-                    if ((cont_cantidades + material_solicitud.cantidad ) > mi.cantidad):
-                        tipo = "Disponibilidad Limitada"
-                        msg = "Existen materiales en el inventario pero ya estan aprobados para retiro en otra solicitud."
+                    if ((cont_cantidades + material_solicitud.cantidad) > mi.cantidad):
+                        # tipo = "Disponibilidad Limitada"
+                        # msg = "Existen materiales en el inventario pero ya estan aprobados para retiro en otra solicitud."
+                        aux_2 = {}
+                        aux_2['codigo_mat'] = material_solicitud.codigo_mat.codigo
+                        aux_2['nombre_mat'] = material_solicitud.codigo_mat.nombre
+                        aux_2['desc_mat'] = material_solicitud.codigo_mat.desc
+                        aux_2['serial_mat'] = material_solicitud.codigo_mat.serial
+                        aux_2['marca_mat'] = material_solicitud.codigo_mat.marca
+                        aux_2['presen_mat'] = material_solicitud.codigo_mat.presen
+                        aux_2['cantidad_solicitada'] = material_solicitud.cantidad
+                        aux_2['cantidad_reservada'] = cont_cantidades
+                        aux_2['cantidad_inventario'] = mi.cantidad
+                        aux['materiales_disponibilidad_limitada'].append(aux_2)
                         disponible = False
-                    else:
-                        tipo= "Disponibilidad"
-                        msg= "Existencia de todos los materiales de la solicitud en el inventario."
-            
+                    # else:
+                    #    tipo= "Disponibilidad"
+                    #    msg= "Existencia de todos los materiales de la solicitud en el inventario."
+
+            if (disponible is False and aux['materiales_sin_disponibilidad']):
+                sin_disp = True
+
+            if(disponible is False and aux['materiales_disponibilidad_limitada']):
+                disp_limit = True
+
+
+            aux['sin_disp'] = sin_disp
+            aux['disp_limit'] = disp_limit
             aux['disponible'] = disponible
             aux['tipo'] = tipo
             aux['msg'] = msg
-            aux['codigo_sol'] =sol
+            aux['codigo_sol'] = sol
             return Response(aux, status=status.HTTP_200_OK)
         except Exception as e:
             return Response(str(e), status=status.HTTP_400_BAD_REQUEST)

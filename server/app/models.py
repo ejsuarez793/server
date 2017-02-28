@@ -116,10 +116,10 @@ class Reporte_inicial(models.Model):
     codigo = models.AutoField(primary_key=True)
     persona_a = models.CharField(max_length=60, blank=True)
     cargo_a = models.CharField(max_length=60, blank=True)
-    desc = models.CharField(max_length=500, blank=True)
-    observ = models.CharField(max_length=500, blank=True)
+    desc = models.TextField(max_length=1500, blank=True)
+    observ = models.TextField(max_length=500, blank=True)
     factibilidad = models.CharField(max_length=2, choices=opt, blank=True)
-    riesgos = models.CharField(max_length=300, blank=True)
+    riesgos = models.TextField(max_length=300, blank=True)
     complejidad = models.CharField(max_length=2, choices=opt, blank=True)
     completado = models.BooleanField(default=False)
     nombre_t = models.CharField(max_length=60, blank=True)
@@ -129,7 +129,7 @@ class Reporte_inicial(models.Model):
 class Causa_rechazo(models.Model):
     codigo = models.AutoField(primary_key=True)
     codigo_pro = models.OneToOneField(Proyecto, on_delete=models.PROTECT)
-    desc = models.CharField(max_length=200)
+    desc = models.TextField(max_length=200)
 
 
 # aqui cambio codigo p a codigo pro y estatus
@@ -206,8 +206,8 @@ class Reporte_detalle(models.Model):
     persona_a = models.CharField(max_length=60)
     cargo_a = models.CharField(max_length=60)
     nombre_t = models.CharField(max_length=60)
-    vicios_ocu = models.CharField(max_length=500, blank=True)
-    observ = models.CharField(max_length=500)
+    vicios_ocu = models.TextField(max_length=500, blank=True)
+    observ = models.TextField(max_length=500)
     completado = models.BooleanField(default=False)
 
 
@@ -222,7 +222,7 @@ class Reporte(models.Model):
     fecha = models.DateField(auto_now_add=True)
     nombre_t = models.CharField(max_length=60)
     tipo = models.CharField(max_length=10, choices=opt)
-    observ = models.CharField(max_length=300)
+    observ = models.TextField(max_length=300)
     leido = models.BooleanField(default=False)
 
 
@@ -259,10 +259,10 @@ class Presupuesto(models.Model):
     fecha = models.DateField()
     validez_o = models.IntegerField()
     descuento = models.IntegerField()
-    observ = models.CharField(max_length=300, blank=True)
-    desc = models.CharField(max_length=200)
-    cond_g = models.CharField(max_length=500, blank=True)
-    cond_p = models.CharField(max_length=500, blank=True)
+    observ = models.TextField(max_length=300, blank=True)
+    desc = models.TextField(max_length=500)
+    cond_g = models.TextField(max_length=500, blank=True)
+    cond_p = models.TextField(max_length=500, blank=True)
     atencion_n = models.CharField(max_length=75)
     atencion_e = models.EmailField()
     estatus = models.CharField(max_length=10, choices=est, default='Preventa')
