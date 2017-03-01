@@ -418,6 +418,11 @@ class ProyectoMaterialDesglose(APIView):
                 aux['tiene_materiales'] = True
             data_usados_etapas.append(aux)
 
+        for usado in data_usados_etapas:
+            print("ESTOS EN LA ETAPA \n\n\n" + usado['letra_eta'])
+            for material in usado['materiales']:
+                print(material)
+
         # ahora sumamos todos los materiales usados por etapas, y si las etapas estan bajo consideracion del presupuesto
         # actual se le restan a los materiales disponibles actuales, es decir, si son materiales que se han usado
         # del presupuesto que esta disponible actualmente, se le deben restar las cantidades usadas a las disp.
@@ -435,9 +440,21 @@ class ProyectoMaterialDesglose(APIView):
                         material_agregado['cantidad'] += material['cantidad']
                         yaAgregado = True
                 if (yaAgregado is False):
-                    data_usados.append(material)
+                    aux = {}
+                    aux['codigo'] = material['codigo']
+                    aux['nombre'] = material['nombre']
+                    aux['desc'] = material['desc']
+                    aux['marca'] = material['marca']
+                    aux['serial'] = material['serial']
+                    aux['presen'] = material['presen']
+                    aux['cantidad'] = material['cantidad']
+                    data_usados.append(aux)
 
 
+        for usado in data_usados_etapas:
+            print("ESTOS EN LA ETAPA despues \n\n\n" + usado['letra_eta'])
+            for material in usado['materiales']:
+                print(material)
         # print(data_presupuesto)
         # print(data_usados_etapas)
         # print(data_usados)
@@ -459,6 +476,7 @@ class ProyectoMaterialDesglose(APIView):
             aux = {}
             aux['letra_eta'] = etapa['letra_eta']
             aux['nombre_eta'] = etapa['nombre_eta']
+            aux['codigo_eta'] = etapa['codigo_eta']
             aux['considerar'] = etapa['considerar']
             aux['tiene_materiales'] = etapa['tiene_materiales']
             aux['materiales'] = []
