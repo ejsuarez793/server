@@ -335,8 +335,7 @@ class Material_proveedor(models.Model):
 class Factura(models.Model):
     opt = (
         ('Credito', 'Credito'),
-        ('Debito', 'Debito'),
-        ('Efectivo', 'Efectivo'),
+        ('Contado', 'Contado'),
     )
     nro_factura = models.IntegerField(primary_key=True)
     codigo_pre = models.ForeignKey(Presupuesto, on_delete=models.PROTECT)
@@ -345,8 +344,7 @@ class Factura(models.Model):
     f_emi = models.DateField()
     f_ven = models.DateField()
     persona_cc = models.CharField(max_length=100)
-    email_cc = models.CharField(max_length=100)
-    cargo_cc = models.CharField(max_length=100, blank=True)
+    nro_orden = models.CharField(max_length=100, blank=True)
     departamento_cc = models.CharField(max_length=100, blank=True)
     cond_pago = models.CharField(max_length=10, choices=opt)
     pagada = models.BooleanField(default=False)

@@ -257,8 +257,7 @@ class FacturaConsultar(APIView):
                     detalle['nombre_v'] = factura.codigo_pre.ci_vendedor.nombre1 + " " + factura.codigo_pre.ci_vendedor.nombre2
                     detalle['cond_pago'] = factura.cond_pago
                     detalle['persona_cc'] = factura.persona_cc
-                    detalle['email_cc'] = factura.email_cc
-                    detalle['cargo_cc'] = factura.cargo_cc
+                    detalle['nro_orden'] = factura.nro_orden
                     detalle['departamento_cc'] = factura.departamento_cc
                     detalle['pagada'] = factura.pagada
                     detalle['banco_dest'] = factura.banco_dest
@@ -320,11 +319,23 @@ class FacturaConsultar(APIView):
                             aux['serial'] = material.codigo_mat.serial
                             aux['cantidad'] = material.cantidad
                             if (etm.codigo_mov.tipo == "Egreso"):
-                                egresados.append(aux)
+                                yaIncluido = False
+                                for egresado in egresados:
+                                    if (egresado['codigo'] == aux['codigo']):
+                                        egresado['cantidad'] += aux['cantidad']
+                                        yaIncluido = True
+                                if (yaIncluido is False):
+                                    egresados.append(aux)
                             elif(etm.codigo_mov.tipo == "Retorno"):
-                                retornados.append(aux)
+                                yaIncluido = False
+                                for retornado in retornados:
+                                    if (retornado['codigo'] == aux['codigo']):
+                                        retornado['cantidad'] += aux['cantidad']
+                                        yaIncluido = True
+                                if (yaIncluido is False):
+                                    retornados.append(aux)
 
-                # print(egresados)
+                #print(egresados)
                 # print(retornados)
                 # usados = []
                 for egresado in egresados:

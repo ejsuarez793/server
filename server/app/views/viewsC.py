@@ -226,7 +226,7 @@ class ProyectoDetail(APIView):
                         data['msg'] = msg
                         return Response(data, status=status.HTTP_200_OK)
                 else:
-                    return Response("El estado del proyecto no permite realizar dicha accion.", status=status.HTTP_400_BAD_REQUEST)     
+                    return Response("El estado del proyecto no permite realizar dicha accion.", status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
             return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
 
@@ -238,7 +238,7 @@ class ProyectoEtapa(APIView):
         try:
             proyecto = Proyecto.objects.get(codigo=pk)
             if (proyecto.estatus == "Preventa" or proyecto.estatus == "Rechazado" or proyecto.estatus == "Culminado"):
-                return Response("El estado del proyecto '" + proyecto.estatus +"' no permite crear una etapa.", status=status.HTTP_400_BAD_REQUEST)
+                return Response("El estado del proyecto '" + proyecto.estatus + "' no permite crear una etapa.", status=status.HTTP_400_BAD_REQUEST)
 
             s_etapa = EtapaSerializer(data=request.data)
             if(s_etapa.is_valid(raise_exception=True)):
@@ -252,9 +252,9 @@ class ProyectoEtapa(APIView):
 
 
 class ProyectoEtapaDetail(APIView):
-     permissions_classes = [IsAuthenticated, esCoordinador]
+    permissions_classes = [IsAuthenticated, esCoordinador]
 
-     def patch(self, request, pk_p,pk_e, format=None):
+    def patch(self, request, pk_p, pk_e, format=None):
         try:
             etapa = Etapa.objects.get(codigo=pk_e)
             s_etapa = EtapaSerializer(etapa, data=request.data)
@@ -266,15 +266,19 @@ class ProyectoEtapaDetail(APIView):
                     if (proyecto.estatus != "Ejecucion"):
                         return Response("El proyecto debe estar en ejecucion para iniciar etapa.", status=status.HTTP_400_BAD_REQUEST)
                     etapa = Etapa.objects.get(codigo=pk_e)
-                    if (etapa.codigo_rd == None):
+                    if (etapa.codigo_rd is None):
                         return Response("El reporte de detalle debe ser completado.", status=status.HTTP_400_BAD_REQUEST)
                     if not actividades:
                         return Response("Debes definir al menos 1 actividad.", status=status.HTTP_400_BAD_REQUEST)
                     data['msg'] = "Etapa iniciada exitosamente!"
-                elif(s_etapa.initial_data['accion']=="Culminar"):
+                elif(s_etapa.initial_data['accion'] == "Culminar"):
                     for actividad in actividades:
-                        if (actividad.completada==False):
+                        if (actividad.completada is False):
                             return Response("Hay actividades que no han sido completadas.", status=status.HTTP_400_BAD_REQUEST)
+                    reportes = Reporte.objects.filter(codigo_eta=pk_e)
+                    for reporte in reportes:
+                        if (reporte.leido is False):
+                            return Response("Hay reportes que no han sido leidos y verificados.", status=status.HTTP_400_BAD_REQUEST)
                     data['msg'] = "Etapa culminada exitosamente!"
                 else:
                     data['msg'] = "Etapa editada exitosamente!"
@@ -288,7 +292,7 @@ class ProyectoEtapaDetail(APIView):
 class ActividadDetail(APIView):
     permissions_classes = [IsAuthenticated, esCoordinador]
 
-    def post(self, request, pk_p,pk_e, format=None):
+    def post(self, request, pk_p, pk_e, format=None):
         try:
             # print(request.data)
             s_actividad = ActividadSerializer(data=request.data, many=True)
@@ -304,13 +308,23 @@ class ActividadDetail(APIView):
 
 class ReporteProyecto(APIView):
     permissions_classes = [IsAuthenticated, esCoordinador]
+
     def patch(self, request, pk_p, pk_e, format=None):
         try:
             with transaction.atomic():
-                for codigo in request.data['codigos']:
-                    reporte = Reporte.objects.get(codigo=codigo)
-                    reporte.leido = True
-                    reporte.save()
+                for reporte in request.data:
+                    rep = Reporte.objects.get(codigo=reporte['codigo'])
+                    rep.leido = True
+                    rep.save()
+                    print(reporte['codigo'])
+                    rep_serv = Reporte_servicio.objects.filter(codigo_rep=reporte['codigo'])
+                    for rs in rep_serv:
+                        for servicio in reporte['servicios']:
+                            if (servicio == rs.codigo_ser.codigo):
+                                rs.delete()
+                                # print(servicio)
+                                # print("entro! borrar: "+str(reporte['codigo'])+" y serv: "+str(servicio))
+
                 data = {}
                 data['data'] = request.data
                 data['msg'] = "Reportes marcados como leidos exitosamente!"
@@ -330,10 +344,9 @@ class ProyectoMaterialDesglose(APIView):
         data_usados = []
         data_usados_etapas = []
         aux = {}
-        aux_2 ={}
-        codigo_presupuesto=""
+        aux_2 = {}
+        codigo_presupuesto = ""
         materiales_aux = []
-
 
         # primero buscamos los materiales que estan en el presupuesto aprobado del proyecto
         presupuestos = Presupuesto.objects.filter(codigo_pro=pk).order_by('codigo')

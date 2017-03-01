@@ -315,9 +315,10 @@ class MovimientoRetorno(APIView):
             data['nombre_pro'] = proyecto.nombre
             data['etapas'] = []
             data['tecnicos'] = []
-            data['materiales'] = []
+            #data['materiales'] = []
             codigo_presupuesto = ""
-
+            aux={}
+            aux2={}
             # primero buscamos los materiales que estan en el presupuesto aprobado del proyecto
             presupuestos = Presupuesto.objects.filter(codigo_pro=codigo_pro).order_by('codigo')
             for presupuesto in presupuestos:
@@ -344,30 +345,41 @@ class MovimientoRetorno(APIView):
                     aux['codigo_eta'] = etapa.codigo
                     aux['nombre_eta'] = etapa.nombre
                     aux['letra_eta'] = etapa.letra
-                    data['etapas'].append(aux)
+                    aux['materiales'] = []
 
                     etms = Etapa_tecnico_movimiento.objects.filter(codigo_eta=etapa.codigo)
                     for etm in etms:
                         if (etm.codigo_mov.completado is True and etm.codigo_mov.tipo == "Egreso"):
                             mm = Material_movimiento.objects.filter(codigo_mov=etm.codigo_mov.codigo)
                             for material in mm:
-                                aux = {}
-                                aux['codigo'] = material.codigo_mat.codigo
-                                aux['nombre'] = material.codigo_mat.nombre
-                                aux['desc'] = material.codigo_mat.desc + " " + material.codigo_mat.marca + " (" + material.codigo_mat.presen + ")"
-                                aux['serial'] = material.codigo_mat.serial
-                                aux['cantidad'] = material.cantidad
-                                data['materiales'].append(aux)
+                                aux2 = {}
+                                aux2['codigo'] = material.codigo_mat.codigo
+                                aux2['nombre'] = material.codigo_mat.nombre
+                                aux2['desc'] = material.codigo_mat.desc + " " + material.codigo_mat.marca + " (" + material.codigo_mat.presen + ")"
+                                aux2['serial'] = material.codigo_mat.serial
+                                aux2['cantidad'] = material.cantidad
+                                yaAgregado = False
+                                #print(aux['materiales'])
+                                for material_agregado in aux['materiales']:
+                                    #yaAgregado = True
+                                    #print(material_agregado)
+                                    if (material_agregado['codigo'] == aux2['codigo']):
+                                        yaAgregado = True
+                                        material_agregado['cantidad'] += aux2['cantidad']
+                                if(yaAgregado is False):
+                                    aux['materiales'].append(aux2)
 
                     for etm in etms:
                         if (etm.codigo_mov.completado is True and etm.codigo_mov.tipo == "Retorno"):
                             mm = Material_movimiento.objects.filter(codigo_mov=etm.codigo_mov.codigo)
                             for material in mm:
-                                for mat_egresado in data['materiales']:
+                                for mat_egresado in aux['materiales']:
                                     if (mat_egresado['codigo'] == material.codigo_mat.codigo):
                                         mat_egresado['cantidad'] -= material.cantidad
                                         if (mat_egresado['cantidad'] == 0):
-                                            data['materiales'].remove(mat_egresado)
+                                            aux['materiales'].remove(mat_egresado)
+
+                    data['etapas'].append(aux)
 
             tecnicos = Proyecto_tecnico.objects.filter(codigo_pro=codigo_pro)
             for tecnico in tecnicos:
@@ -403,7 +415,11 @@ class MovimientoRetorno(APIView):
                 movimiento.save()
 
                 for material in request.data['materiales']:
-                    Material_movimiento.objects.create(cantidad=material['cantidad'], codigo_mov=movimiento, codigo_mat=Material.objects.get(codigo=material['codigo']))
+                    mat = Material.objects.get(codigo=material['codigo'])
+                    mat.cantidad += material['cantidad']
+                    mat.save()
+                    # print(material)
+                    Material_movimiento.objects.create(cantidad=material['cantidad'], codigo_mov=movimiento, codigo_mat=mat)
 
                 codigo_eta = Etapa.objects.get(codigo=request.data['codigo_eta'])
                 ci_tecnico = Trabajador.objects.get(ci=request.data['ci_tecnico'])

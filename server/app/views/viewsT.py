@@ -141,10 +141,11 @@ class EtapaTecnico(APIView):
                     considerar = True
             # print(considerar)
             if (considerar is True):
-                reportes = Reporte.objects.filter(codigo_eta=cod_eta)
+                reportes = Reporte.objects.filter(codigo_eta=etapa.codigo)
                 for reporte in reportes:
                     rep_serv = Reporte_servicio.objects.filter(codigo_rep=reporte.codigo)
                     for servicio in rep_serv:
+                        print(servicio.codigo_ser.codigo)
                         aux_s = {}
                         aux_s['codigo'] = servicio.codigo_ser.codigo
                         aux_s['cantidad'] = servicio.cantidad
@@ -152,6 +153,7 @@ class EtapaTecnico(APIView):
                         flag = False  # colocamos esta bandera para saber si ya el servicio fue incluido o no
                         for serv in servicios_reportes:
                             if (serv['codigo'] == aux_s['codigo']):
+                                #print(serv['codigo'])
                                 serv['cantidad'] += aux_s['cantidad']
                                 flag = True  # ya estaba incluido entonces solo sumamos cantidades
                         if (flag is False):  # no estaba incluido y lo aniadimos al array
@@ -176,7 +178,7 @@ class EtapaTecnico(APIView):
             if (flag is False):  # no ha sido utilizado y se aniade en su totalidad al array
                 servicios_disponibles.append(servicio_presupuesto)
 
-        # print(servicios_disponibles)
+        #print(servicios_disponibles)
 
         # AHORA BUSCAMOS LOS MATERIALES DISPONIBLES QUE EL TECNICO PUEDE SOLICITAR PARA DICHA ETAPA
         materiales_presupuestos = []
