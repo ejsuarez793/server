@@ -98,7 +98,7 @@ class ProyectoDetail(APIView):
                     reporte_detalle = Reporte_detalle.objects.get(codigo=etapa['codigo_rd'])
                     s_reporte_detalle = ReporteDetalleSerializer(reporte_detalle)
                     etapa['reporte_detalle'] = s_reporte_detalle.data
-                    reportes = Reporte.objects.filter(codigo_eta=etapa['codigo']).order_by('fecha')
+                    reportes = Reporte.objects.filter(codigo_eta=etapa['codigo']).order_by('codigo')
                     s_reportes = ReporteSerializer(reportes, many=True)
                     for reporte in s_reportes.data:
                         rep_sev = Reporte_servicio.objects.filter(codigo_rep=reporte['codigo'])

@@ -464,12 +464,13 @@ class ResumenClientes(APIView):
                                     if (factura.pagada is True):
                                         aux_cliente['monto_total'] = aux_cliente['monto_total'] + factura.monto_total
 
-                            encuesta = Encuesta.objects.get(codigo_pro=proyecto.codigo)
-                            if (encuesta is not None and encuesta.completado is True):
-                                aux_cliente['nro_encuestas'] += 1
-                                preguntas = Pregunta.objects.filter(codigo_en=encuesta.codigo)
-                                for pregunta in preguntas:
-                                    aux_cliente['puntaje_total'] += int(pregunta.respuesta)
+                            encuestas = Encuesta.objects.filter(codigo_pro=proyecto.codigo)
+                            for encuesta in encuestas:
+                                if(encuesta is not None and encuesta.completado is True):
+                                    aux_cliente['nro_encuestas'] += 1
+                                    preguntas = Pregunta.objects.filter(codigo_en=encuesta.codigo)
+                                    for pregunta in preguntas:
+                                        aux_cliente['puntaje_total'] += int(pregunta.respuesta)
                 if(aux_cliente['nro_proyectos'] > 0):
                     aux_cliente['promedio_monto'] = aux_cliente['monto_total'] / aux_cliente['nro_proyectos']
                     if (aux_cliente['nro_encuestas'] > 0):
@@ -479,5 +480,7 @@ class ResumenClientes(APIView):
             # print("ok")
             # print(resumen)
             return Response(resumen, status=status.HTTP_200_OK)
+        except Encuesta.DoesNotExist:
+            print("no existe")
         except Exception as e:
             return Response(str(e), status=status.HTTP_400_BAD_REQUEST)
