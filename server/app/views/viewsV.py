@@ -254,7 +254,7 @@ class FacturaConsultar(APIView):
                     detalle['nro_control'] = factura.nro_control
                     detalle['f_emi'] = factura.f_emi
                     detalle['f_ven'] = factura.f_ven
-                    detalle['nombre_v'] = factura.codigo_pre.ci_vendedor.nombre1 + " " + factura.codigo_pre.ci_vendedor.nombre2
+                    detalle['nombre_v'] = factura.codigo_pre.ci_vendedor.nombre1 + " " + factura.codigo_pre.ci_vendedor.apellido1
                     detalle['cond_pago'] = factura.cond_pago
                     detalle['persona_cc'] = factura.persona_cc
                     detalle['nro_orden'] = factura.nro_orden

@@ -257,14 +257,16 @@ class Presupuesto(models.Model):
     ci_vendedor = models.ForeignKey(Trabajador, on_delete=models.PROTECT,
                                     blank=True, null=True)
     fecha = models.DateField()
-    validez_o = models.IntegerField()
-    descuento = models.IntegerField()
+    validez_o = models.IntegerField(blank=True,default=0)
+    descuento = models.IntegerField(blank=True, default=0)
     observ = models.TextField(max_length=300, blank=True)
-    desc = models.TextField(max_length=500)
+    desc = models.TextField(max_length=500, blank=True)
     cond_g = models.TextField(max_length=500, blank=True)
     cond_p = models.TextField(max_length=500, blank=True)
-    atencion_n = models.CharField(max_length=75)
-    atencion_e = models.EmailField()
+    cond_pago = models.TextField(max_length=500, blank=True)
+    t_ent = models.TextField(max_length=500, blank=True)
+    atencion_n = models.CharField(max_length=75, blank=True)
+    atencion_e = models.EmailField(blank=True)
     estatus = models.CharField(max_length=10, choices=est, default='Preventa')
 
 
@@ -305,9 +307,9 @@ class Material(models.Model):
     precio_act = models.DecimalField(max_digits=30, decimal_places=2)
     cantidad = models.IntegerField(blank=True, default=0)
     serial = models.CharField(max_length=50, unique=True, blank=True, null=True)
-    largo = models.CharField(max_length=20, blank=True)
+    """largo = models.CharField(max_length=20, blank=True)
     ancho = models.CharField(max_length=20, blank=True)
-    alto = models.CharField(max_length=20, blank=True)
+    alto = models.CharField(max_length=20, blank=True)"""
     marca = models.CharField(max_length=50)
     modelo = models.CharField(max_length=50, blank=True)
     color = models.CharField(max_length=20, blank=True)
