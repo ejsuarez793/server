@@ -145,7 +145,7 @@ class EtapaTecnico(APIView):
                 for reporte in reportes:
                     rep_serv = Reporte_servicio.objects.filter(codigo_rep=reporte.codigo)
                     for servicio in rep_serv:
-                        print(servicio.codigo_ser.codigo)
+                        #print(servicio.codigo_ser.codigo)
                         aux_s = {}
                         aux_s['codigo'] = servicio.codigo_ser.codigo
                         aux_s['cantidad'] = servicio.cantidad
